@@ -36,18 +36,18 @@ error:
 	return nil, errors.New("Cannot open the file.")
 }
 
-func (instance *File) Close() {
-	C.matClose(instance.mat)
-	instance.mat = nil
+func (f *File) Close() {
+	C.matClose(f.mat)
+	f.mat = nil
 }
 
-func (instance *File) PutMatrix(name string, m, n uint32,
+func (f *File) PutMatrix(name string, rows, cols uint32,
 	data []float64) error {
 
 	var cname *C.char
 	var pmatrix unsafe.Pointer
 
-	matrix := C.mxCreateDoubleMatrix(C.size_t(m), C.size_t(n), C.mxREAL)
+	matrix := C.mxCreateDoubleMatrix(C.size_t(rows), C.size_t(cols), C.mxREAL)
 	if matrix == nil {
 		goto error
 	}
@@ -64,7 +64,7 @@ func (instance *File) PutMatrix(name string, m, n uint32,
 	cname = C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
-	if C.matPutVariable(instance.mat, cname, matrix) != 0 {
+	if C.matPutVariable(f.mat, cname, matrix) != 0 {
 		goto error
 	}
 
