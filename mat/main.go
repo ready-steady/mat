@@ -15,7 +15,7 @@ import (
 
 type File struct {
 	path string
-	mat *C.MATFile
+	mat  *C.MATFile
 }
 
 func Open(path string, mode string) (*File, error) {
@@ -25,7 +25,7 @@ func Open(path string, mode string) (*File, error) {
 	cmode := C.CString(mode)
 	defer C.free(unsafe.Pointer(cmode))
 
-	file := &File{ path: path, mat: C.matOpen(cpath, cmode) }
+	file := &File{path: path, mat: C.matOpen(cpath, cmode)}
 	if file.mat == nil {
 		goto error
 	}
@@ -59,7 +59,7 @@ func (f *File) PutMatrix(name string, rows, cols uint32,
 		goto error
 	}
 
-	C.memcpy(pmatrix, unsafe.Pointer(&data[0]), C.size_t(8 * len(data)))
+	C.memcpy(pmatrix, unsafe.Pointer(&data[0]), C.size_t(8*len(data)))
 
 	cname = C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
