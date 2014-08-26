@@ -33,7 +33,7 @@ func Open(path string, mode string) (*File, error) {
 	return file, nil
 
 error:
-	return nil, errors.New("Cannot open the file.")
+	return nil, errors.New("cannot open the file")
 }
 
 func (f *File) Close() {
@@ -71,5 +71,5 @@ func (f *File) PutMatrix(name string, rows, cols uint32,
 	return nil
 
 error:
-	return errors.New("Cannot write into the file.")
+	return errors.New("cannot write into the file")
 }
