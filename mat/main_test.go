@@ -40,11 +40,11 @@ func TestPutMatrix(t *testing.T) {
 	path := createTempFile()
 	defer os.Remove(path)
 
-	name, m, n := "a", uint32(2), uint32(3)
+	name, rows, cols := "a", uint32(2), uint32(3)
 	data := []float64{1, 4, 2, 5, 3, 6}
 
 	file, _ := Open(path, "w7.3")
-	err := file.PutMatrix(name, m, n, data)
+	err := file.PutMatrix(name, rows, cols, data)
 
 	assertEqual(nil, err, t)
 
