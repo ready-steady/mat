@@ -1,14 +1,3 @@
-# In order to compile, MATLAB_ROOT and MATLAB_ARCH are required to be set. For
-# example:
-#
-# export MATLAB_ROOT=/Applications/MATLAB_R2014a.app
-# export MATLAB_ARCH=maci64
-#
-# In order to run, the MATLAB libraries are required to be accessible for the
-# dynamic linker. For example:
-#
-# export DYLD_LIBRARY_PATH="$MATLAB_ROOT/bin/$MATLAB_ARCH:$DYLD_LIBRARY_PATH"
-
 ifndef MATLAB_ROOT
 $(error MATLAB_ROOT should be defined.)
 endif
@@ -25,7 +14,10 @@ GO_FLAGS += CGO_LDFLAGS='$(CGO_LDFLAGS)'
 
 all: build
 
-build test install:
+build install:
 	$(GO_FLAGS) go $@
+
+test:
+	$(GO_FLAGS) go $@ -v
 
 .PHONY: all build test install
