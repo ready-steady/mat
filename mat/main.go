@@ -41,9 +41,7 @@ func (f *File) Close() {
 	f.mat = nil
 }
 
-func (f *File) PutMatrix(name string, rows, cols uint32,
-	data []float64) error {
-
+func (f *File) PutMatrix(name string, rows, cols uint32, data []float64) error {
 	var cname *C.char
 	var pmatrix unsafe.Pointer
 
