@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	bufferCapacity  = 42
+	bufferCapacity = 42
 )
 
 type lexer struct {

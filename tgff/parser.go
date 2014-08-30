@@ -4,7 +4,7 @@ type parser struct {
 	stream  <-chan token
 	success chan<- *Result
 	failure chan<- error
-	result *Result
+	result  *Result
 }
 
 func newParser(stream <-chan token) (*parser, <-chan *Result, <-chan error) {

@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func assertAt(lexer *lexer, char byte, t *testing.T) {
+func assertLexerAt(lexer *lexer, char byte, t *testing.T) {
 	if c, _ := lexer.reader.ReadByte(); c != char {
 		t.Fatalf("at '%v' instead of '%v'", char)
 	} else {
@@ -30,17 +30,17 @@ error:
 	t.Fatalf("got %v instead of %v", actual, expected)
 }
 
-func TestReadChars(t *testing.T) {
+func TestLexerReadChars(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
 
 	err := lexer.readChars("ab")
 
 	assertSuccess(err, t)
-	assertAt(lexer, 'c', t)
+	assertLexerAt(lexer, 'c', t)
 	assertEqual(lexer.value(), "abbbaa", t)
 }
 
-func TestReadName(t *testing.T) {
+func TestLexerReadName(t *testing.T) {
 	scenarios := []struct {
 		data string
 		name string
@@ -55,22 +55,22 @@ func TestReadName(t *testing.T) {
 	}
 }
 
-func TestSkipChars(t *testing.T) {
+func TestLexerSkipChars(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
 
 	err := lexer.skipChars("ab")
 
 	assertSuccess(err, t)
-	assertAt(lexer, 'c', t)
+	assertLexerAt(lexer, 'c', t)
 }
 
-func TestSkipChar(t *testing.T) {
+func TestLexerSkipChar(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abcde"))
 
 	err := lexer.skipChar('a')
 
 	assertSuccess(err, t)
-	assertAt(lexer, 'b', t)
+	assertLexerAt(lexer, 'b', t)
 
 	err = lexer.skipChar('c')
 
