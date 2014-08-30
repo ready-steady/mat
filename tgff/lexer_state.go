@@ -2,6 +2,7 @@ package tgff
 
 import (
 	"errors"
+	"io"
 )
 
 type lexState func(*lexer) lexState
@@ -19,11 +20,26 @@ func lexErrorState(err error) lexState {
 	}
 }
 
-func lexControlState(l *lexer) lexState {
+func lexUncertainState(l *lexer) lexState {
 	if err := l.skipWhitespace(); err != nil {
 		return lexErrorState(err)
 	}
 
+	switch c, err := l.peek(); {
+	case err == io.EOF:
+		return nil
+	case err != nil:
+		return lexErrorState(err)
+	case c == '@':
+		return lexControlState
+	case isMember("-+0123456789", c):
+		return lexNumberState
+	default:
+		return lexErrorState(errors.New("unknown token"))
+	}
+}
+
+func lexControlState(l *lexer) lexState {
 	if err := l.skipChar(controlMarker); err != nil {
 		return lexErrorState(err)
 	}
@@ -34,15 +50,11 @@ func lexControlState(l *lexer) lexState {
 
 	l.emit(controlToken)
 
-	return lexNumberState
+	return lexUncertainState
 }
 
 func lexNumberState(l *lexer) lexState {
-	if err := l.skipWhitespace(); err != nil {
-		return lexErrorState(err)
-	}
-
-	if err := l.readChars("+-.0123456789eE"); err != nil {
+	if err := l.readChars("+-", "0123456789", ".", "0123456789"); err != nil {
 		return lexErrorState(err)
 	}
 
@@ -52,5 +64,5 @@ func lexNumberState(l *lexer) lexState {
 
 	l.emit(numberToken)
 
-	return nil
+	return lexUncertainState
 }

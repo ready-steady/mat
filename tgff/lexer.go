@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 )
 
 const (
@@ -32,7 +31,7 @@ func newLexer(reader io.Reader) (*lexer, <-chan token) {
 }
 
 func (l *lexer) run() {
-	for state := lexControlState; state != nil; {
+	for state := lexUncertainState; state != nil; {
 		state = state(l)
 	}
 	close(l.stream)
@@ -52,6 +51,16 @@ func (l *lexer) flush() {
 
 func (l *lexer) set(value string) {
 	l.buffer = append(l.buffer[0:0], []byte(value)...)
+}
+
+func (l *lexer) peek() (byte, error) {
+	c, err := l.reader.ReadByte()
+
+	if err == nil {
+		l.reader.UnreadByte()
+	}
+
+	return c, err
 }
 
 func (l *lexer) read(accept func(uint, byte) bool) error {
@@ -75,10 +84,18 @@ func (l *lexer) read(accept func(uint, byte) bool) error {
 	}
 }
 
-func (l *lexer) readChars(chars string) error {
-	return l.read(func(_ uint, c byte) bool {
-		return strings.IndexByte(chars, c) >= 0
-	})
+func (l *lexer) readChars(groups ...string) error {
+	for _, chars := range groups {
+		err := l.read(func(_ uint, c byte) bool {
+			return isMember(chars, c)
+		})
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (l *lexer) readName() error {
@@ -115,7 +132,7 @@ func (l *lexer) skipChar(char byte) error {
 	}
 
 	if c != char {
-		return errors.New(fmt.Sprintf("got %v instead of %v", c, char))
+		return errors.New(fmt.Sprintf("got '%c' instead of '%c'", c, char))
 	}
 
 	return nil

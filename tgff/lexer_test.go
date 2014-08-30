@@ -13,10 +13,21 @@ func assertAt(lexer *lexer, char byte, t *testing.T) {
 	}
 }
 
-func assertToken(actual, expected token, t *testing.T) {
-	if actual.kind != expected.kind || actual.value != expected.value {
-		t.Fatalf("got %v instead of %v", actual, expected)
+func assertTokens(actual, expected []token, t *testing.T) {
+	if len(actual) != len(expected) {
+		goto error
 	}
+
+	for i := range actual {
+		if actual[i].kind != expected[i].kind || actual[i].value != expected[i].value {
+			goto error
+		}
+	}
+
+	return
+
+error:
+	t.Fatalf("got %v instead of %v", actual, expected)
 }
 
 func TestReadChars(t *testing.T) {
@@ -75,7 +86,7 @@ func TestSkipChar(t *testing.T) {
 	assertFailure(err, t)
 }
 
-func TestRun(t *testing.T) {
+func TestLexerRun(t *testing.T) {
 	lexer, stream := newLexer(strings.NewReader("   \n\n @abcd   42"))
 
 	go lexer.run()
@@ -85,7 +96,8 @@ func TestRun(t *testing.T) {
 		tokens = append(tokens, token)
 	}
 
-	assertEqual(len(tokens), 2, t)
-	assertToken(tokens[0], token{controlToken, "abcd", nil}, t)
-	assertToken(tokens[1], token{numberToken, "42", nil}, t)
+	assertTokens(tokens, []token{
+		token{controlToken, "abcd", nil},
+		token{numberToken, "42", nil},
+	}, t)
 }
