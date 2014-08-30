@@ -8,3 +8,15 @@ func isMember(item byte, set []byte) bool {
 	}
 	return false
 }
+
+func isAlpha(char byte) bool {
+	return char >= 'A' && char <= 'z'
+}
+
+func isDigit(char byte) bool {
+	return char >= '0' && char <= '9'
+}
+
+func isNamely(char byte) bool {
+	return isAlpha(char) || isDigit(char) || char == '_'
+}

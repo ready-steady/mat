@@ -5,24 +5,22 @@ import (
 	"strings"
 )
 
-func assertSuccess(err error, t *testing.T) {
-	if err != nil {
-		t.Fatalf("got an error '%v'", err)
-	}
-}
-
-func assertFailure(err error, t *testing.T) {
-	if err == nil {
-		t.Fatalf("expected an error")
-	}
-}
-
 func assertAt(lexer *lexer, char byte, t *testing.T) {
 	if c, _ := lexer.reader.ReadByte(); c != char {
 		t.Fatalf("at '%v' instead of '%v'", char)
 	} else {
 		lexer.reader.UnreadByte()
 	}
+}
+
+func TestReadChars(t *testing.T) {
+	lexer := newLexer(strings.NewReader("abbbaacdefg"))
+
+	chars, err := lexer.readChars('a', 'b')
+
+	assertSuccess(err, t)
+	assertAt(lexer, 'c', t)
+	assertEqual(chars, "abbbaa", t)
 }
 
 func TestAccept(t *testing.T) {
@@ -43,15 +41,30 @@ func TestAcceptWhitespace(t *testing.T) {
 	assertAt(lexer, 'a', t)
 }
 
-func TestRequire(t *testing.T) {
+func TestRequireChar(t *testing.T) {
 	lexer := newLexer(strings.NewReader("abcde"))
 
-	err := lexer.require('a')
+	err := lexer.requireChar('a')
 
 	assertSuccess(err, t)
 	assertAt(lexer, 'b', t)
 
-	err = lexer.require('c')
+	err = lexer.requireChar('c')
 
 	assertFailure(err, t)
+}
+
+func TestRequireName(t *testing.T) {
+	scenarios := []struct{
+		data string
+		name string
+	}{
+		{"abcd efgh", "abcd"},
+	}
+
+	for _, s := range scenarios {
+		lexer := newLexer(strings.NewReader(s.data))
+		name, _ := lexer.readName()
+		assertEqual(name, s.name, t)
+	}
 }

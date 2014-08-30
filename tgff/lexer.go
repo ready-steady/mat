@@ -8,11 +8,15 @@ import (
 	"log"
 )
 
+const (
+	bufferCapacity = 50
+)
+
+var whitespaceChars = []byte{' ', '\t', '\n', '\r'}
+
 type lexer struct {
 	reader *bufio.Reader
 }
-
-var whitespaceList = []byte{' ', '\t', '\n', '\r'}
 
 func newLexer(reader io.Reader) *lexer {
 	return &lexer{
@@ -20,28 +24,54 @@ func newLexer(reader io.Reader) *lexer {
 	}
 }
 
-func (l *lexer) accept(chars ...byte) error {
+func (l *lexer) read(accept func(uint, byte) bool) (string, error) {
+	buffer := make([]byte, 0, bufferCapacity)
+
 	for {
 		c, err := l.reader.ReadByte()
 
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		if !isMember(c, chars) {
+		if !accept(uint(len(buffer)), c) {
 			l.reader.UnreadByte()
-			return nil
+			break
 		}
+
+		buffer = append(buffer, c)
 	}
 
-	return nil
+	return string(buffer), nil
+}
+
+func (l *lexer) readChars(chars ...byte) (string, error) {
+	return l.read(func(_ uint, c byte) bool {
+		return isMember(c, chars)
+	})
+}
+
+func (l *lexer) readName() (string, error) {
+	return l.read(func(i uint, c byte) bool {
+		if i == 0 {
+			return isAlpha(c)
+		} else {
+			return isNamely(c)
+		}
+	})
+}
+
+func (l *lexer) accept(chars ...byte) error {
+	_, err := l.readChars(chars...)
+	return err
 }
 
 func (l *lexer) acceptWhitespace() error {
-	return l.accept(whitespaceList...)
+	_, err := l.readChars(whitespaceChars...)
+	return err
 }
 
-func (l *lexer) require(char byte) error {
+func (l *lexer) requireChar(char byte) error {
 	c, err := l.reader.ReadByte()
 
 	if err != nil {
