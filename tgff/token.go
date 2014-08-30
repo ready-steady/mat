@@ -11,4 +11,5 @@ type token struct {
 const (
 	errorToken tokenKind = iota
 	controlToken
+	numberToken
 )

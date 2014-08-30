@@ -39,6 +39,10 @@ func (l *lexer) run() {
 	close(l.stream)
 }
 
+func (l *lexer) length() uint {
+	return uint(len(l.buffer))
+}
+
 func (l *lexer) value() string {
 	return string(l.buffer)
 }

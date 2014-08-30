@@ -1,5 +1,9 @@
 package tgff
 
+import (
+	"errors"
+)
+
 type state func(*lexer) state
 
 const (
@@ -37,5 +41,16 @@ func numberState(l *lexer) state {
 	if err := l.skipWhitespace(); err != nil {
 		return errorState(err)
 	}
+
+	if err := l.readChars("+-.0123456789eE"); err != nil {
+		return errorState(err)
+	}
+
+	if l.length() == 0 {
+		return errorState(errors.New("expected a number"))
+	}
+
+	l.emit(numberToken)
+
 	return nil
 }

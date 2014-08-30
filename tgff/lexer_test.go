@@ -76,7 +76,7 @@ func TestSkipChar(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
-	lexer, stream := newLexer(strings.NewReader("   \n\n@abcd"))
+	lexer, stream := newLexer(strings.NewReader("   \n\n @abcd   42"))
 
 	go lexer.run()
 
@@ -85,6 +85,7 @@ func TestRun(t *testing.T) {
 		tokens = append(tokens, token)
 	}
 
-	assertEqual(len(tokens), 1, t)
+	assertEqual(len(tokens), 2, t)
 	assertToken(tokens[0], token{controlToken, "abcd", nil}, t)
+	assertToken(tokens[1], token{numberToken, "42", nil}, t)
 }
