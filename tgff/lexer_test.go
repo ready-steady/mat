@@ -14,7 +14,7 @@ func assertAt(lexer *lexer, char byte, t *testing.T) {
 }
 
 func TestReadChars(t *testing.T) {
-	lexer := newLexer(strings.NewReader("abbbaacdefg"))
+	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
 
 	chars, err := lexer.readChars('a', 'b')
 
@@ -23,8 +23,23 @@ func TestReadChars(t *testing.T) {
 	assertEqual(chars, "abbbaa", t)
 }
 
+func TestReadName(t *testing.T) {
+	scenarios := []struct{
+		data string
+		name string
+	}{
+		{"abcd efgh", "abcd"},
+	}
+
+	for _, s := range scenarios {
+		lexer, _ := newLexer(strings.NewReader(s.data))
+		name, _ := lexer.readName()
+		assertEqual(name, s.name, t)
+	}
+}
+
 func TestAccept(t *testing.T) {
-	lexer := newLexer(strings.NewReader("abbbaacdefg"))
+	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
 
 	err := lexer.accept('a', 'b')
 
@@ -33,7 +48,7 @@ func TestAccept(t *testing.T) {
 }
 
 func TestAcceptWhitespace(t *testing.T) {
-	lexer := newLexer(strings.NewReader("  \t  \t  \n  abc"))
+	lexer, _ := newLexer(strings.NewReader("  \t  \t  \n  abc"))
 
 	err := lexer.acceptWhitespace()
 
@@ -42,7 +57,7 @@ func TestAcceptWhitespace(t *testing.T) {
 }
 
 func TestRequireChar(t *testing.T) {
-	lexer := newLexer(strings.NewReader("abcde"))
+	lexer, _ := newLexer(strings.NewReader("abcde"))
 
 	err := lexer.requireChar('a')
 
@@ -52,19 +67,4 @@ func TestRequireChar(t *testing.T) {
 	err = lexer.requireChar('c')
 
 	assertFailure(err, t)
-}
-
-func TestRequireName(t *testing.T) {
-	scenarios := []struct{
-		data string
-		name string
-	}{
-		{"abcd efgh", "abcd"},
-	}
-
-	for _, s := range scenarios {
-		lexer := newLexer(strings.NewReader(s.data))
-		name, _ := lexer.readName()
-		assertEqual(name, s.name, t)
-	}
 }

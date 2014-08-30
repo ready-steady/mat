@@ -9,14 +9,14 @@ func isMember(item byte, set []byte) bool {
 	return false
 }
 
-func isAlpha(char byte) bool {
-	return char >= 'A' && char <= 'z'
+func isAlpha(c byte) bool {
+	return c >= 'A' && c <= 'z'
 }
 
-func isDigit(char byte) bool {
-	return char >= '0' && char <= '9'
+func isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
 }
 
-func isNamely(char byte) bool {
-	return isAlpha(char) || isDigit(char) || char == '_'
+func isNamely(c byte) bool {
+	return isAlpha(c) || isDigit(c) || c == '_'
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 )
 
 const (
@@ -16,12 +15,25 @@ var whitespaceChars = []byte{' ', '\t', '\n', '\r'}
 
 type lexer struct {
 	reader *bufio.Reader
+	stream chan token
 }
 
-func newLexer(reader io.Reader) *lexer {
-	return &lexer{
+func newLexer(reader io.Reader) (*lexer, <-chan token) {
+	stream := make(chan token)
+
+	lexer := &lexer{
 		reader: bufio.NewReader(reader),
+		stream: stream,
 	}
+
+	return lexer, stream
+}
+
+func (l *lexer) run() {
+	for state := stripState; state != nil; {
+		state = state(l)
+	}
+	close(l.stream)
 }
 
 func (l *lexer) read(accept func(uint, byte) bool) (string, error) {
@@ -83,4 +95,8 @@ func (l *lexer) requireChar(char byte) error {
 	}
 
 	return nil
+}
+
+func (l *lexer) emit(token token) {
+	l.stream <- token
 }
