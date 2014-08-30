@@ -32,7 +32,7 @@ func newLexer(reader io.Reader) (*lexer, <-chan token) {
 }
 
 func (l *lexer) run() {
-	for state := controlState; state != nil; {
+	for state := lexControlState; state != nil; {
 		state = state(l)
 	}
 	close(l.stream)

@@ -4,14 +4,14 @@ import (
 	"errors"
 )
 
-type state func(*lexer) state
+type lexState func(*lexer) lexState
 
 const (
 	controlMarker = '@'
 )
 
-func errorState(err error) state {
-	return func(l *lexer) state {
+func lexErrorState(err error) lexState {
+	return func(l *lexer) lexState {
 		l.set(err.Error())
 		l.emit(errorToken, err)
 
@@ -19,35 +19,35 @@ func errorState(err error) state {
 	}
 }
 
-func controlState(l *lexer) state {
+func lexControlState(l *lexer) lexState {
 	if err := l.skipWhitespace(); err != nil {
-		return errorState(err)
+		return lexErrorState(err)
 	}
 
 	if err := l.skipChar(controlMarker); err != nil {
-		return errorState(err)
+		return lexErrorState(err)
 	}
 
 	if err := l.readName(); err != nil {
-		return errorState(err)
+		return lexErrorState(err)
 	}
 
 	l.emit(controlToken)
 
-	return numberState
+	return lexNumberState
 }
 
-func numberState(l *lexer) state {
+func lexNumberState(l *lexer) lexState {
 	if err := l.skipWhitespace(); err != nil {
-		return errorState(err)
+		return lexErrorState(err)
 	}
 
 	if err := l.readChars("+-.0123456789eE"); err != nil {
-		return errorState(err)
+		return lexErrorState(err)
 	}
 
 	if l.length() == 0 {
-		return errorState(errors.New("expected a number"))
+		return lexErrorState(errors.New("expected a number"))
 	}
 
 	l.emit(numberToken)
