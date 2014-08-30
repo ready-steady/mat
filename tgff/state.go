@@ -8,7 +8,8 @@ const (
 
 func errorState(err error) state {
 	return func(l *lexer) state {
-		l.emit(errorToken{err})
+		l.emit(errorToken)
+
 		return nil
 	}
 }
@@ -22,12 +23,13 @@ func controlState(l *lexer) state {
 		return errorState(err)
 	}
 
-	if name, err := l.readName(); err != nil {
+	if err := l.readName(); err != nil {
 		return errorState(err)
-	} else {
-		l.emit(controlToken{name})
-		return numberState
 	}
+
+	l.emit(controlToken)
+
+	return numberState
 }
 
 func numberState(l *lexer) state {

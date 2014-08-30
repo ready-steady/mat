@@ -1,12 +1,13 @@
 package tgff
 
-type token interface {
+type tokenKind uint
+
+type token struct {
+	kind tokenKind
+	value string
 }
 
-type errorToken struct {
-	err error
-}
-
-type controlToken struct {
-	name string
-}
+const (
+	errorToken tokenKind = iota
+	controlToken
+)

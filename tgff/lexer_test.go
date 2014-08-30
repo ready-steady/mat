@@ -16,11 +16,11 @@ func assertAt(lexer *lexer, char byte, t *testing.T) {
 func TestReadChars(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
 
-	chars, err := lexer.readChars("ab")
+	err := lexer.readChars("ab")
 
 	assertSuccess(err, t)
 	assertAt(lexer, 'c', t)
-	assertEqual(chars, "abbbaa", t)
+	assertEqual(lexer.flush(), "abbbaa", t)
 }
 
 func TestReadName(t *testing.T) {
@@ -33,8 +33,8 @@ func TestReadName(t *testing.T) {
 
 	for _, s := range scenarios {
 		lexer, _ := newLexer(strings.NewReader(s.data))
-		name, _ := lexer.readName()
-		assertEqual(name, s.name, t)
+		_ = lexer.readName()
+		assertEqual(lexer.flush(), s.name, t)
 	}
 }
 

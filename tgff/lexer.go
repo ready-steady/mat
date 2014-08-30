@@ -17,6 +17,7 @@ const (
 type lexer struct {
 	reader *bufio.Reader
 	stream chan token
+	buffer []byte
 }
 
 func newLexer(reader io.Reader) (*lexer, <-chan token) {
@@ -25,6 +26,7 @@ func newLexer(reader io.Reader) (*lexer, <-chan token) {
 	lexer := &lexer{
 		reader: bufio.NewReader(reader),
 		stream: stream,
+		buffer: make([]byte, 0, bufferCapacity),
 	}
 
 	return lexer, stream
@@ -37,34 +39,40 @@ func (l *lexer) run() {
 	close(l.stream)
 }
 
-func (l *lexer) read(accept func(uint, byte) bool) (string, error) {
-	buffer := make([]byte, 0, bufferCapacity)
+func (l *lexer) flush() string {
+	value := string(l.buffer)
 
+	l.buffer = l.buffer[0:1]
+
+	return value
+}
+
+func (l *lexer) read(accept func(uint, byte) bool) error {
 	for {
 		c, err := l.reader.ReadByte()
 
 		if err != nil {
-			return "", err
+			return err
 		}
 
-		if !accept(uint(len(buffer)), c) {
+		if !accept(uint(len(l.buffer)), c) {
 			l.reader.UnreadByte()
 			break
 		}
 
-		buffer = append(buffer, c)
+		l.buffer = append(l.buffer, c)
 	}
 
-	return string(buffer), nil
+	return nil
 }
 
-func (l *lexer) readChars(chars string) (string, error) {
+func (l *lexer) readChars(chars string) error {
 	return l.read(func(_ uint, c byte) bool {
 		return strings.IndexByte(chars, c) >= 0
 	})
 }
 
-func (l *lexer) readName() (string, error) {
+func (l *lexer) readName() error {
 	return l.read(func(i uint, c byte) bool {
 		if i == 0 {
 			return isAlpha(c)
@@ -75,13 +83,11 @@ func (l *lexer) readName() (string, error) {
 }
 
 func (l *lexer) skip(chars string) error {
-	_, err := l.readChars(chars)
-	return err
+	return l.readChars(chars)
 }
 
 func (l *lexer) skipWhitespace() error {
-	_, err := l.readChars(whitespaceChars)
-	return err
+	return l.readChars(whitespaceChars)
 }
 
 func (l *lexer) requireChar(char byte) error {
@@ -98,6 +104,6 @@ func (l *lexer) requireChar(char byte) error {
 	return nil
 }
 
-func (l *lexer) emit(token token) {
-	l.stream <- token
+func (l *lexer) emit(kind tokenKind) {
+	l.stream <- token{kind, l.flush()}
 }
