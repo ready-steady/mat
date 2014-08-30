@@ -6,18 +6,21 @@ import (
 
 type parser struct {
 	stream <-chan token
-	done chan<- *Result
+	success chan<- *Result
+	failure chan<- error
 }
 
-func newParser(stream <-chan token) (*parser, <-chan *Result) {
-	done := make(chan *Result)
+func newParser(stream <-chan token) (*parser, <-chan *Result, <-chan error) {
+	success := make(chan *Result)
+	failure := make(chan error)
 
 	parser := &parser{
 		stream: stream,
-		done: done,
+		success: success,
+		failure: failure,
 	}
 
-	return parser, done
+	return parser, success, failure
 }
 
 func (p *parser) run() {
@@ -25,7 +28,13 @@ func (p *parser) run() {
 
 	for token := range p.stream {
 		log.Printf("%T: %v\n", token, token)
+
+		switch token.kind {
+		case errorToken:
+			p.failure <- token.more[0].(error)
+			return
+		}
 	}
 
-	p.done <- result
+	p.success <- result
 }

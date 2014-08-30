@@ -8,7 +8,7 @@ const (
 
 func errorState(err error) state {
 	return func(l *lexer) state {
-		l.emit(errorToken)
+		l.emit(errorToken, err)
 
 		return nil
 	}

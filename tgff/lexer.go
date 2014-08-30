@@ -104,6 +104,6 @@ func (l *lexer) requireChar(char byte) error {
 	return nil
 }
 
-func (l *lexer) emit(kind tokenKind) {
-	l.stream <- token{kind, l.flush()}
+func (l *lexer) emit(kind tokenKind, more ...interface{}) {
+	l.stream <- token{kind, l.flush(), more}
 }
