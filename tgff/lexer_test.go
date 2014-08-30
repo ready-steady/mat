@@ -16,7 +16,7 @@ func assertAt(lexer *lexer, char byte, t *testing.T) {
 func TestReadChars(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
 
-	chars, err := lexer.readChars('a', 'b')
+	chars, err := lexer.readChars("ab")
 
 	assertSuccess(err, t)
 	assertAt(lexer, 'c', t)
@@ -38,19 +38,19 @@ func TestReadName(t *testing.T) {
 	}
 }
 
-func TestAccept(t *testing.T) {
+func TestSkip(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
 
-	err := lexer.accept('a', 'b')
+	err := lexer.skip("ab")
 
 	assertSuccess(err, t)
 	assertAt(lexer, 'c', t)
 }
 
-func TestAcceptWhitespace(t *testing.T) {
+func TestSkipWhitespace(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("  \t  \t  \n  abc"))
 
-	err := lexer.acceptWhitespace()
+	err := lexer.skipWhitespace()
 
 	assertSuccess(err, t)
 	assertAt(lexer, 'a', t)

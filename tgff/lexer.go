@@ -5,13 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 )
 
 const (
-	bufferCapacity = 50
+	bufferCapacity = 42
+	whitespaceChars = " \t\n\r"
 )
 
-var whitespaceChars = []byte{' ', '\t', '\n', '\r'}
 
 type lexer struct {
 	reader *bufio.Reader
@@ -30,7 +31,7 @@ func newLexer(reader io.Reader) (*lexer, <-chan token) {
 }
 
 func (l *lexer) run() {
-	for state := stripState; state != nil; {
+	for state := controlState; state != nil; {
 		state = state(l)
 	}
 	close(l.stream)
@@ -57,9 +58,9 @@ func (l *lexer) read(accept func(uint, byte) bool) (string, error) {
 	return string(buffer), nil
 }
 
-func (l *lexer) readChars(chars ...byte) (string, error) {
+func (l *lexer) readChars(chars string) (string, error) {
 	return l.read(func(_ uint, c byte) bool {
-		return isMember(c, chars)
+		return strings.IndexByte(chars, c) >= 0
 	})
 }
 
@@ -73,13 +74,13 @@ func (l *lexer) readName() (string, error) {
 	})
 }
 
-func (l *lexer) accept(chars ...byte) error {
-	_, err := l.readChars(chars...)
+func (l *lexer) skip(chars string) error {
+	_, err := l.readChars(chars)
 	return err
 }
 
-func (l *lexer) acceptWhitespace() error {
-	_, err := l.readChars(whitespaceChars...)
+func (l *lexer) skipWhitespace() error {
+	_, err := l.readChars(whitespaceChars)
 	return err
 }
 
