@@ -5,8 +5,8 @@ import (
 )
 
 func TestIsNamely(t *testing.T) {
-	scenarios := []struct{
-		char byte
+	scenarios := []struct {
+		char   byte
 		result bool
 	}{
 		{'A', true},

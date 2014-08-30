@@ -5,7 +5,7 @@ import (
 )
 
 type parser struct {
-	stream <-chan token
+	stream  <-chan token
 	success chan<- *Result
 	failure chan<- error
 }
@@ -15,7 +15,7 @@ func newParser(stream <-chan token) (*parser, <-chan *Result, <-chan error) {
 	failure := make(chan error)
 
 	parser := &parser{
-		stream: stream,
+		stream:  stream,
 		success: success,
 		failure: failure,
 	}

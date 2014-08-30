@@ -1,8 +1,8 @@
 package tgff
 
 import (
-	"testing"
 	"strings"
+	"testing"
 )
 
 func assertAt(lexer *lexer, char byte, t *testing.T) {
@@ -30,7 +30,7 @@ func TestReadChars(t *testing.T) {
 }
 
 func TestReadName(t *testing.T) {
-	scenarios := []struct{
+	scenarios := []struct {
 		data string
 		name string
 	}{

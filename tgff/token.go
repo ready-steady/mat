@@ -3,9 +3,9 @@ package tgff
 type tokenKind uint
 
 type token struct {
-	kind tokenKind
+	kind  tokenKind
 	value string
-	more []interface{}
+	more  []interface{}
 }
 
 const (

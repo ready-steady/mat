@@ -12,7 +12,9 @@ func Parse(reader io.Reader) (*Result, error) {
 	go parser.run()
 
 	select {
-	case result := <- success: return result, nil
-	case err := <- failure: return nil, err
+	case result := <-success:
+		return result, nil
+	case err := <-failure:
+		return nil, err
 	}
 }

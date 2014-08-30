@@ -9,10 +9,9 @@ import (
 )
 
 const (
-	bufferCapacity = 42
+	bufferCapacity  = 42
 	whitespaceChars = " \t\n\r"
 )
-
 
 type lexer struct {
 	reader *bufio.Reader
