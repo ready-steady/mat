@@ -64,15 +64,6 @@ func TestSkipChars(t *testing.T) {
 	assertAt(lexer, 'c', t)
 }
 
-func TestSkipWhitespace(t *testing.T) {
-	lexer, _ := newLexer(strings.NewReader("  \t  \t  \n  abc"))
-
-	err := lexer.skipWhitespace()
-
-	assertSuccess(err, t)
-	assertAt(lexer, 'a', t)
-}
-
 func TestSkipChar(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abcde"))
 

@@ -8,7 +8,9 @@ import (
 type lexState func(*lexer) lexState
 
 const (
-	controlMarker = '@'
+	controlMarker   = '@'
+	digitChars      = "0123456789"
+	whitespaceChars = " \t\n\r"
 )
 
 func lexErrorState(err error) lexState {
@@ -21,7 +23,7 @@ func lexErrorState(err error) lexState {
 }
 
 func lexUncertainState(l *lexer) lexState {
-	if err := l.skipWhitespace(); err != nil {
+	if err := l.skipChars(whitespaceChars); err != nil {
 		return lexErrorState(err)
 	}
 
@@ -54,7 +56,7 @@ func lexControlState(l *lexer) lexState {
 }
 
 func lexNumberState(l *lexer) lexState {
-	if err := l.readChars("+-", "0123456789", ".", "0123456789"); err != nil {
+	if err := l.readChars("+-", digitChars, ".", digitChars); err != nil {
 		return lexErrorState(err)
 	}
 

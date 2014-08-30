@@ -9,7 +9,6 @@ import (
 
 const (
 	bufferCapacity  = 42
-	whitespaceChars = " \t\n\r"
 )
 
 type lexer struct {
@@ -118,10 +117,6 @@ func (l *lexer) skipChars(chars string) error {
 	}
 
 	return err
-}
-
-func (l *lexer) skipWhitespace() error {
-	return l.skipChars(whitespaceChars)
 }
 
 func (l *lexer) skipChar(char byte) error {
