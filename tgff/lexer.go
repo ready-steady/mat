@@ -39,12 +39,16 @@ func (l *lexer) run() {
 	close(l.stream)
 }
 
-func (l *lexer) flush() string {
-	value := string(l.buffer)
+func (l *lexer) value() string {
+	return string(l.buffer)
+}
 
-	l.buffer = l.buffer[0:1]
+func (l *lexer) flush() {
+	l.buffer = l.buffer[0:0]
+}
 
-	return value
+func (l *lexer) set(value string) {
+	l.buffer = append(l.buffer[0:0], []byte(value)...)
 }
 
 func (l *lexer) read(accept func(uint, byte) bool) error {
@@ -52,18 +56,20 @@ func (l *lexer) read(accept func(uint, byte) bool) error {
 		c, err := l.reader.ReadByte()
 
 		if err != nil {
-			return err
+			if err == io.EOF {
+				return nil
+			} else {
+				return err
+			}
 		}
 
 		if !accept(uint(len(l.buffer)), c) {
 			l.reader.UnreadByte()
-			break
+			return nil
 		}
 
 		l.buffer = append(l.buffer, c)
 	}
-
-	return nil
 }
 
 func (l *lexer) readChars(chars string) error {
@@ -82,15 +88,23 @@ func (l *lexer) readName() error {
 	})
 }
 
-func (l *lexer) skip(chars string) error {
-	return l.readChars(chars)
+func (l *lexer) skipChars(chars string) error {
+	size := len(l.buffer)
+
+	err := l.readChars(chars)
+
+	if err == nil {
+		l.buffer = l.buffer[0:size]
+	}
+
+	return err
 }
 
 func (l *lexer) skipWhitespace() error {
-	return l.readChars(whitespaceChars)
+	return l.skipChars(whitespaceChars)
 }
 
-func (l *lexer) requireChar(char byte) error {
+func (l *lexer) skipChar(char byte) error {
 	c, err := l.reader.ReadByte()
 
 	if err != nil {
@@ -105,5 +119,6 @@ func (l *lexer) requireChar(char byte) error {
 }
 
 func (l *lexer) emit(kind tokenKind, more ...interface{}) {
-	l.stream <- token{kind, l.flush(), more}
+	defer l.flush()
+	l.stream <- token{kind, l.value(), more}
 }

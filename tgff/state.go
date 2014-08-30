@@ -8,6 +8,7 @@ const (
 
 func errorState(err error) state {
 	return func(l *lexer) state {
+		l.set(err.Error())
 		l.emit(errorToken, err)
 
 		return nil
@@ -19,7 +20,7 @@ func controlState(l *lexer) state {
 		return errorState(err)
 	}
 
-	if err := l.requireChar(controlMarker); err != nil {
+	if err := l.skipChar(controlMarker); err != nil {
 		return errorState(err)
 	}
 
