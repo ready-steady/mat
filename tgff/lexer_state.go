@@ -9,14 +9,11 @@ import (
 type lexState func(*lexer) lexState
 
 const (
-	blockCloseChar  = '}'
-	blockOpenChar   = '{'
-	controlChar     = '@'
-	commentChar     = '#'
-	digitChars      = "0123456789"
-	dotChar         = '.'
-	signChars       = "-+"
-	whitespaceChars = " \t\n\r"
+	blockCloser = '}'
+	blockOpener = '{'
+	controlMark = '@'
+	commentMark = '#'
+	whitespaces = " \t\n\r"
 )
 
 func lexErrorState(err error) lexState {
@@ -29,7 +26,7 @@ func lexErrorState(err error) lexState {
 }
 
 func lexUncertainState(l *lexer) lexState {
-	if err := l.skipAny(whitespaceChars); err != nil {
+	if err := l.skipAny(whitespaces); err != nil {
 		return lexErrorState(err)
 	}
 
@@ -38,18 +35,18 @@ func lexUncertainState(l *lexer) lexState {
 		return nil
 	case err != nil:
 		return lexErrorState(err)
-	case c == controlChar:
+	case c == controlMark:
 		return lexControlState
-	case c == commentChar:
+	case c == commentMark:
 		return lexCommentState
-	case c == blockOpenChar:
+	case c == blockOpener:
 		return lexBlockOpenState
-	case c == blockCloseChar:
+	case c == blockCloser:
 		return lexBlockCloseState
-	case isMember(signChars, c) || isMember(digitChars, c):
+	case isNumberly(c):
 		return lexNumberState
 	case isIdently(c):
-		return lexIdentifierState
+		return lexIdentState
 	case isNamely(c):
 		return lexNameState
 	default:
@@ -58,7 +55,7 @@ func lexUncertainState(l *lexer) lexState {
 }
 
 func lexBlockOpenState(l *lexer) lexState {
-	if err := l.readOne(blockOpenChar); err != nil {
+	if err := l.readOne(blockOpener); err != nil {
 		return lexErrorState(err)
 	}
 
@@ -68,7 +65,7 @@ func lexBlockOpenState(l *lexer) lexState {
 }
 
 func lexBlockCloseState(l *lexer) lexState {
-	if err := l.readOne(blockCloseChar); err != nil {
+	if err := l.readOne(blockCloser); err != nil {
 		return lexErrorState(err)
 	}
 
@@ -78,7 +75,7 @@ func lexBlockCloseState(l *lexer) lexState {
 }
 
 func lexControlState(l *lexer) lexState {
-	if err := l.skipOne(controlChar); err != nil {
+	if err := l.skipOne(controlMark); err != nil {
 		return lexErrorState(err)
 	}
 
@@ -99,12 +96,12 @@ func lexCommentState(l *lexer) lexState {
 	return lexUncertainState
 }
 
-func lexIdentifierState(l *lexer) lexState {
+func lexIdentState(l *lexer) lexState {
 	if err := l.readIdent(); err != nil {
 		return lexErrorState(err)
 	}
 
-	l.emit(identifierToken)
+	l.emit(identToken)
 
 	return lexUncertainState
 }
@@ -120,7 +117,7 @@ func lexNameState(l *lexer) lexState {
 }
 
 func lexNumberState(l *lexer) lexState {
-	if err := l.readAny(signChars, digitChars, string(dotChar), digitChars); err != nil {
+	if err := l.readAny(signs, digits, string(point), digits); err != nil {
 		return lexErrorState(err)
 	}
 

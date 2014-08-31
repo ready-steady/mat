@@ -4,16 +4,26 @@ import (
 	"strings"
 )
 
+const (
+	digits = "0123456789"
+	point  = '.'
+	signs  = "-+"
+)
+
 func isMember(chars string, c byte) bool {
 	return strings.IndexByte(chars, c) >= 0
 }
 
-func isLowerLetter(c byte) bool {
+func isLowercase(c byte) bool {
 	return c >= 'a' && c <= 'z'
 }
 
-func isUpperLetter(c byte) bool {
+func isUppercase(c byte) bool {
 	return c >= 'A' && c <= 'Z'
+}
+
+func isSign(c byte) bool {
+	return c == '+' || c == '-'
 }
 
 func isDigit(c byte) bool {
@@ -21,9 +31,13 @@ func isDigit(c byte) bool {
 }
 
 func isIdently(c byte) bool {
-	return isUpperLetter(c) || c == '_'
+	return isUppercase(c) || c == '_'
 }
 
 func isNamely(c byte) bool {
-	return isLowerLetter(c) || isDigit(c) || c == '_'
+	return isLowercase(c) || isDigit(c) || c == '_'
+}
+
+func isNumberly(c byte) bool {
+	return isDigit(c) || isMember("-+.", c)
 }
