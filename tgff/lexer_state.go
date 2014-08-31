@@ -8,8 +8,11 @@ import (
 type lexState func(*lexer) lexState
 
 const (
-	controlMarker   = '@'
+	blockCloseChar  = '}'
+	blockOpenChar   = '{'
+	controlChar     = '@'
 	digitChars      = "0123456789"
+	signChars       = "-+"
 	whitespaceChars = " \t\n\r"
 )
 
@@ -23,7 +26,7 @@ func lexErrorState(err error) lexState {
 }
 
 func lexUncertainState(l *lexer) lexState {
-	if err := l.skipChars(whitespaceChars); err != nil {
+	if err := l.skipAny(whitespaceChars); err != nil {
 		return lexErrorState(err)
 	}
 
@@ -32,17 +35,21 @@ func lexUncertainState(l *lexer) lexState {
 		return nil
 	case err != nil:
 		return lexErrorState(err)
-	case c == '@':
+	case c == controlChar:
 		return lexControlState
-	case isMember("-+0123456789", c):
+	case isMember(signChars, c) || isMember(digitChars, c):
 		return lexNumberState
+	case c == blockOpenChar:
+		return lexBlockOpenState
+	case c == blockCloseChar:
+		return lexBlockCloseState
 	default:
 		return lexErrorState(errors.New("unknown token"))
 	}
 }
 
 func lexControlState(l *lexer) lexState {
-	if err := l.skipChar(controlMarker); err != nil {
+	if err := l.skipSequence(string(controlChar)); err != nil {
 		return lexErrorState(err)
 	}
 
@@ -56,15 +63,31 @@ func lexControlState(l *lexer) lexState {
 }
 
 func lexNumberState(l *lexer) lexState {
-	if err := l.readChars("+-", digitChars, ".", digitChars); err != nil {
+	if err := l.readAny(signChars, digitChars, ".", digitChars); err != nil {
 		return lexErrorState(err)
 	}
 
-	if l.length() == 0 {
-		return lexErrorState(errors.New("expected a number"))
+	l.emit(numberToken)
+
+	return lexUncertainState
+}
+
+func lexBlockOpenState(l *lexer) lexState {
+	if err := l.readOne(blockOpenChar); err != nil {
+		return lexErrorState(err)
 	}
 
-	l.emit(numberToken)
+	l.emit(blockOpenToken)
+
+	return lexUncertainState
+}
+
+func lexBlockCloseState(l *lexer) lexState {
+	if err := l.readOne(blockCloseChar); err != nil {
+		return lexErrorState(err)
+	}
+
+	l.emit(blockCloseToken)
 
 	return lexUncertainState
 }

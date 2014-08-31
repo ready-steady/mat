@@ -10,6 +10,8 @@ type token struct {
 
 const (
 	errorToken tokenKind = iota
+	blockCloseToken
+	blockOpenToken
 	controlToken
 	numberToken
 )

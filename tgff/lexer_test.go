@@ -30,10 +30,10 @@ error:
 	t.Fatalf("got %v instead of %v", actual, expected)
 }
 
-func TestLexerReadChars(t *testing.T) {
+func TestLexerReadAny(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
 
-	err := lexer.readChars("ab")
+	err := lexer.readAny("ab")
 
 	assertSuccess(err, t)
 	assertLexerAt(lexer, 'c', t)
@@ -55,24 +55,24 @@ func TestLexerReadName(t *testing.T) {
 	}
 }
 
-func TestLexerSkipChars(t *testing.T) {
+func TestLexerSkipAny(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
 
-	err := lexer.skipChars("ab")
+	err := lexer.skipAny("ab")
 
 	assertSuccess(err, t)
 	assertLexerAt(lexer, 'c', t)
 }
 
-func TestLexerSkipChar(t *testing.T) {
+func TestLexerSkipSequence(t *testing.T) {
 	lexer, _ := newLexer(strings.NewReader("abcde"))
 
-	err := lexer.skipChar('a')
+	err := lexer.skipSequence("ab")
 
 	assertSuccess(err, t)
-	assertLexerAt(lexer, 'b', t)
+	assertLexerAt(lexer, 'c', t)
 
-	err = lexer.skipChar('c')
+	err = lexer.skipSequence("d")
 
 	assertFailure(err, t)
 }

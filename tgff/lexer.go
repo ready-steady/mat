@@ -36,8 +36,8 @@ func (l *lexer) run() {
 	close(l.stream)
 }
 
-func (l *lexer) length() uint {
-	return uint(len(l.buffer))
+func (l *lexer) length() int {
+	return len(l.buffer)
 }
 
 func (l *lexer) value() string {
@@ -62,7 +62,7 @@ func (l *lexer) peek() (byte, error) {
 	return c, err
 }
 
-func (l *lexer) read(accept func(uint, byte) bool) error {
+func (l *lexer) read(accept func(int, byte) bool) error {
 	for {
 		c, err := l.reader.ReadByte()
 
@@ -74,7 +74,7 @@ func (l *lexer) read(accept func(uint, byte) bool) error {
 			}
 		}
 
-		if !accept(uint(len(l.buffer)), c) {
+		if !accept(len(l.buffer), c) {
 			l.reader.UnreadByte()
 			return nil
 		}
@@ -83,9 +83,9 @@ func (l *lexer) read(accept func(uint, byte) bool) error {
 	}
 }
 
-func (l *lexer) readChars(groups ...string) error {
+func (l *lexer) readAny(groups ...string) error {
 	for _, chars := range groups {
-		err := l.read(func(_ uint, c byte) bool {
+		err := l.read(func(_ int, c byte) bool {
 			return isMember(chars, c)
 		})
 
@@ -97,8 +97,31 @@ func (l *lexer) readChars(groups ...string) error {
 	return nil
 }
 
+func (l *lexer) readSequence(chars string) error {
+	size := len(l.buffer)
+	count := len(chars)
+
+	err := l.read(func(i int, c byte) bool {
+		return i < count && chars[i] == c
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if len(l.buffer) != size + count {
+		return errors.New(fmt.Sprintf("expected '%v'", chars))
+	}
+
+	return nil
+}
+
+func (l *lexer) readOne(char byte) error {
+	return l.readSequence(string(char))
+}
+
 func (l *lexer) readName() error {
-	return l.read(func(i uint, c byte) bool {
+	return l.read(func(i int, c byte) bool {
 		if i == 0 {
 			return isAlpha(c)
 		} else {
@@ -107,28 +130,28 @@ func (l *lexer) readName() error {
 	})
 }
 
-func (l *lexer) skipChars(chars string) error {
+func (l *lexer) skipAny(groups ...string) error {
 	size := len(l.buffer)
 
-	err := l.readChars(chars)
+	err := l.readAny(groups...)
 
-	if err == nil {
-		l.buffer = l.buffer[0:size]
+	if err != nil {
+		return err;
 	}
 
-	return err
+	l.buffer = l.buffer[0:size]
+
+	return nil
 }
 
-func (l *lexer) skipChar(char byte) error {
-	c, err := l.reader.ReadByte()
+func (l *lexer) skipSequence(chars string) error {
+	err := l.readSequence(chars)
 
 	if err != nil {
 		return err
 	}
 
-	if c != char {
-		return errors.New(fmt.Sprintf("got '%c' instead of '%c'", c, char))
-	}
+	l.buffer = l.buffer[0 : len(l.buffer)-1]
 
 	return nil
 }
