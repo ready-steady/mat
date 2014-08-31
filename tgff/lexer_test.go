@@ -90,17 +90,27 @@ func lexerRun(data string) []token {
 	return tokens
 }
 
-func TestLexerRunEmpty(t *testing.T) {
-	assertTokens(lexerRun(""), []token{}, t)
-	assertTokens(lexerRun("#"), []token{}, t)
-	assertTokens(lexerRun(" \n #\r\n   #"), []token{}, t)
-}
-
 func TestLexerRunControl(t *testing.T) {
 	assertTokens(lexerRun("  \t @ABCD\n   @AB_CD_42"), []token{
 		token{controlToken, "ABCD", nil},
 		token{controlToken, "AB_CD_42", nil},
 	}, t)
+}
+
+func TestLexerRunComment(t *testing.T) {
+	tokens := lexerRun("  \t \n   # one two\n #--- \n # three ")
+
+	assertTokens(tokens, []token{
+		{titleToken, "one", nil},
+		{titleToken, "two", nil},
+		{titleToken, "three", nil},
+	}, t)
+}
+
+func TestLexerRunEmpty(t *testing.T) {
+	assertTokens(lexerRun(""), []token{}, t)
+	assertTokens(lexerRun("#"), []token{}, t)
+	assertTokens(lexerRun(" \n #\r\n   #"), []token{}, t)
 }
 
 func TestLexerRunIdent(t *testing.T) {
@@ -117,12 +127,10 @@ func TestLexerRunName(t *testing.T) {
 	}, t)
 }
 
-func TestLexerRunComment(t *testing.T) {
-	tokens := lexerRun("  \t \n   # one two\n #--- \n # three ")
-
-	assertTokens(tokens, []token{
-		{titleToken, "one", nil},
-		{titleToken, "two", nil},
-		{titleToken, "three", nil},
+func TestLexerRunNumber(t *testing.T) {
+	assertTokens(lexerRun("\t\t  0.42\t \n -4.2 \r +42.0 \t"), []token{
+		token{numberToken, "0.42", nil},
+		token{numberToken, "-4.2", nil},
+		token{numberToken, "+42.0", nil},
 	}, t)
 }

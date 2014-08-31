@@ -159,7 +159,15 @@ func lexNameState(l *lexer) lexState {
 }
 
 func lexNumberState(l *lexer) lexState {
-	if err := l.readAny(signs, digits, string(point), digits); err != nil {
+	if err := l.readAnyOneOf(signs); err != nil {
+		return lexErrorState(err)
+	}
+
+	if err := l.readOneOf(digits); err != nil {
+		return lexErrorState(err)
+	}
+
+	if err := l.readAny(digits, string(point), digits); err != nil {
 		return lexErrorState(err)
 	}
 

@@ -63,6 +63,8 @@ func (l *lexer) peek() (byte, error) {
 }
 
 func (l *lexer) read(accept func(int, byte) bool) error {
+	k := 0
+
 	for {
 		c, err := l.reader.ReadByte()
 
@@ -74,13 +76,28 @@ func (l *lexer) read(accept func(int, byte) bool) error {
 			}
 		}
 
-		if !accept(len(l.buffer), c) {
+		if !accept(k, c) {
 			l.reader.UnreadByte()
 			return nil
 		}
 
 		l.buffer = append(l.buffer, c)
+		k++
 	}
+}
+
+func (l *lexer) readSomething(accept func(int, byte) bool) error {
+	size := len(l.buffer)
+
+	if err := l.read(accept); err != nil {
+		return err
+	}
+
+	if size == len(l.buffer) {
+		return errors.New("expected to read something")
+	}
+
+	return nil
 }
 
 func (l *lexer) readAny(groups ...string) error {
@@ -92,6 +109,18 @@ func (l *lexer) readAny(groups ...string) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (l *lexer) readAnyOneOf(chars string) error {
+	err := l.read(func(i int, c byte) bool {
+		return i == 0 && isMember(chars, c)
+	})
+
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -120,18 +149,10 @@ func (l *lexer) readOne(char byte) error {
 	return l.readSequence(string(char))
 }
 
-func (l *lexer) readSomething(accept func(int, byte) bool) error {
-	size := len(l.buffer)
-
-	if err := l.read(accept); err != nil {
-		return err
-	}
-
-	if size == len(l.buffer) {
-		return errors.New("expected to read something")
-	}
-
-	return nil
+func (l *lexer) readOneOf(chars string) error {
+	return l.readSomething(func(i int, c byte) bool {
+		return i == 0 && isMember(chars, c)
+	})
 }
 
 func (l *lexer) readIdent() error {
@@ -177,7 +198,7 @@ func (l *lexer) skipOne(char byte) error {
 func (l *lexer) skipLine() error {
 	return l.skip(func() error {
 		return l.read(func(i int, c byte) bool {
-			return c != '\n' && c != '\r'
+			return !isMember(newLine, c)
 		})
 	})
 }
