@@ -109,7 +109,7 @@ func (l *lexer) readSequence(chars string) error {
 		return err
 	}
 
-	if len(l.buffer) != size + count {
+	if len(l.buffer) != size+count {
 		return errors.New(fmt.Sprintf("expected '%v'", chars))
 	}
 
