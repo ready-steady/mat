@@ -11,10 +11,11 @@ type lexState func(*lexer) lexState
 const (
 	blockCloser = '}'
 	blockOpener = '{'
+	commentLine = '-'
 	commentMark = '#'
 	controlMark = '@'
-	newLine     = "\n\r"
 	lineSpace   = " \t"
+	newLine     = "\n\r"
 	whitespace  = " \t\n\r"
 )
 
@@ -107,7 +108,7 @@ func lexCommentState(l *lexer) lexState {
 		return lexEndOrErrorState(err)
 	}
 
-	if c != '-' {
+	if c != commentLine {
 		return lexHeaderState
 	}
 
