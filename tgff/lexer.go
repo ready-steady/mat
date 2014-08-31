@@ -120,40 +120,66 @@ func (l *lexer) readOne(char byte) error {
 	return l.readSequence(string(char))
 }
 
-func (l *lexer) readName() error {
-	return l.read(func(i int, c byte) bool {
-		if i == 0 {
-			return isAlpha(c)
-		} else {
-			return isNamely(c)
-		}
-	})
-}
-
-func (l *lexer) skipAny(groups ...string) error {
+func (l *lexer) readSomething(accept func(int, byte) bool) error {
 	size := len(l.buffer)
 
-	err := l.readAny(groups...)
-
-	if err != nil {
-		return err;
-	}
-
-	l.buffer = l.buffer[0:size]
-
-	return nil
-}
-
-func (l *lexer) skipSequence(chars string) error {
-	err := l.readSequence(chars)
-
-	if err != nil {
+	if err := l.read(accept); err != nil {
 		return err
 	}
 
-	l.buffer = l.buffer[0 : len(l.buffer)-1]
+	if size == len(l.buffer) {
+		return errors.New("expected to read something")
+	}
 
 	return nil
+}
+
+func (l *lexer) readIdent() error {
+	return l.readSomething(func(_ int, c byte) bool {
+		return isIdently(c)
+	})
+}
+
+func (l *lexer) readName() error {
+	return l.readSomething(func(i int, c byte) bool {
+		return isNamely(c)
+	})
+}
+
+func (l *lexer) skip(yield func() error) error {
+	size := len(l.buffer)
+
+	err := yield()
+
+	if err == nil {
+		l.buffer = l.buffer[0:size]
+	}
+
+	return err
+}
+
+func (l *lexer) skipAny(groups ...string) error {
+	return l.skip(func() error {
+		return l.readAny(groups...)
+	})
+}
+
+func (l *lexer) skipSequence(chars string) error {
+	return l.skip(func() error {
+		return l.readSequence(chars)
+	})
+}
+
+func (l *lexer) skipOne(char byte) error {
+	return l.skipSequence(string(char))
+}
+
+func (l *lexer) skipLine() error {
+	return l.skip(func() error {
+		return l.read(func(i int, c byte) bool {
+			return c != '\n' && c != '\r'
+		})
+	})
 }
 
 func (l *lexer) emit(kind tokenKind, more ...interface{}) {

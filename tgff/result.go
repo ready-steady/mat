@@ -1,6 +1,7 @@
 package tgff
 
 type Result struct {
-	graphCount uint
-	tableCount uint
+	hyperPeriod uint
+	graphCount  uint
+	tableCount  uint
 }

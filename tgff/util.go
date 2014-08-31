@@ -8,14 +8,22 @@ func isMember(chars string, c byte) bool {
 	return strings.IndexByte(chars, c) >= 0
 }
 
-func isAlpha(c byte) bool {
-	return c >= 'A' && c <= 'z'
+func isLowerLetter(c byte) bool {
+	return c >= 'a' && c <= 'z'
+}
+
+func isUpperLetter(c byte) bool {
+	return c >= 'A' && c <= 'Z'
 }
 
 func isDigit(c byte) bool {
 	return c >= '0' && c <= '9'
 }
 
+func isIdently(c byte) bool {
+	return isUpperLetter(c) || c == '_'
+}
+
 func isNamely(c byte) bool {
-	return isAlpha(c) || isDigit(c) || c == '_'
+	return isLowerLetter(c) || isDigit(c) || c == '_'
 }

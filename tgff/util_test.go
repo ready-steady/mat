@@ -9,7 +9,7 @@ func TestIsNamely(t *testing.T) {
 		char   byte
 		result bool
 	}{
-		{'A', true},
+		{'A', false},
 		{'a', true},
 		{'0', true},
 		{'_', true},

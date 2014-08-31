@@ -13,5 +13,7 @@ const (
 	blockCloseToken
 	blockOpenToken
 	controlToken
+	identifierToken
+	nameToken
 	numberToken
 )

@@ -19,12 +19,13 @@ func TestParseSuccess(t *testing.T) {
 	result, err := Parse(file)
 
 	assertSuccess(err, t)
+	assertEqual(result.hyperPeriod, 1180, t)
 	assertEqual(result.graphCount, 5, t)
 	assertEqual(result.tableCount, 3, t)
 }
 
 func TestParseFailure(t *testing.T) {
-	reader := strings.NewReader("garbage")
+	reader := strings.NewReader("  @ garbage")
 
 	_, err := Parse(reader)
 

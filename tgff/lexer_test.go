@@ -77,8 +77,8 @@ func TestLexerSkipSequence(t *testing.T) {
 	assertFailure(err, t)
 }
 
-func TestLexerRun(t *testing.T) {
-	lexer, stream := newLexer(strings.NewReader("   \n\n @abcd   42"))
+func lexerRun(data string) []token {
+	lexer, stream := newLexer(strings.NewReader(data))
 
 	go lexer.run()
 
@@ -87,8 +87,20 @@ func TestLexerRun(t *testing.T) {
 		tokens = append(tokens, token)
 	}
 
+	return tokens
+}
+
+func TestLexerRunControl(t *testing.T) {
+	tokens := lexerRun("  \t \n   @ABCD 42 ")
+
 	assertTokens(tokens, []token{
-		token{controlToken, "abcd", nil},
+		token{controlToken, "ABCD", nil},
 		token{numberToken, "42", nil},
 	}, t)
+}
+
+func TestLexerRunComment(t *testing.T) {
+	tokens := lexerRun("  \t \n   # Bla-bla\n # Bla-bla ")
+
+	assertTokens(tokens, []token{}, t)
 }

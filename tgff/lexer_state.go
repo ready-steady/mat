@@ -2,6 +2,7 @@ package tgff
 
 import (
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -11,7 +12,9 @@ const (
 	blockCloseChar  = '}'
 	blockOpenChar   = '{'
 	controlChar     = '@'
+	commentChar     = '#'
 	digitChars      = "0123456789"
+	dotChar         = '.'
 	signChars       = "-+"
 	whitespaceChars = " \t\n\r"
 )
@@ -37,39 +40,21 @@ func lexUncertainState(l *lexer) lexState {
 		return lexErrorState(err)
 	case c == controlChar:
 		return lexControlState
-	case isMember(signChars, c) || isMember(digitChars, c):
-		return lexNumberState
+	case c == commentChar:
+		return lexCommentState
 	case c == blockOpenChar:
 		return lexBlockOpenState
 	case c == blockCloseChar:
 		return lexBlockCloseState
+	case isMember(signChars, c) || isMember(digitChars, c):
+		return lexNumberState
+	case isIdently(c):
+		return lexIdentifierState
+	case isNamely(c):
+		return lexNameState
 	default:
-		return lexErrorState(errors.New("unknown token"))
+		return lexErrorState(errors.New(fmt.Sprintf("unknown token starting from '%c'", c)))
 	}
-}
-
-func lexControlState(l *lexer) lexState {
-	if err := l.skipSequence(string(controlChar)); err != nil {
-		return lexErrorState(err)
-	}
-
-	if err := l.readName(); err != nil {
-		return lexErrorState(err)
-	}
-
-	l.emit(controlToken)
-
-	return lexUncertainState
-}
-
-func lexNumberState(l *lexer) lexState {
-	if err := l.readAny(signChars, digitChars, ".", digitChars); err != nil {
-		return lexErrorState(err)
-	}
-
-	l.emit(numberToken)
-
-	return lexUncertainState
 }
 
 func lexBlockOpenState(l *lexer) lexState {
@@ -88,6 +73,58 @@ func lexBlockCloseState(l *lexer) lexState {
 	}
 
 	l.emit(blockCloseToken)
+
+	return lexUncertainState
+}
+
+func lexControlState(l *lexer) lexState {
+	if err := l.skipOne(controlChar); err != nil {
+		return lexErrorState(err)
+	}
+
+	if err := l.readIdent(); err != nil {
+		return lexErrorState(err)
+	}
+
+	l.emit(controlToken)
+
+	return lexUncertainState
+}
+
+func lexCommentState(l *lexer) lexState {
+	if err := l.skipLine(); err != nil {
+		return lexErrorState(err)
+	}
+
+	return lexUncertainState
+}
+
+func lexIdentifierState(l *lexer) lexState {
+	if err := l.readIdent(); err != nil {
+		return lexErrorState(err)
+	}
+
+	l.emit(identifierToken)
+
+	return lexUncertainState
+}
+
+func lexNameState(l *lexer) lexState {
+	if err := l.readName(); err != nil {
+		return lexErrorState(err)
+	}
+
+	l.emit(nameToken)
+
+	return lexUncertainState
+}
+
+func lexNumberState(l *lexer) lexState {
+	if err := l.readAny(signChars, digitChars, string(dotChar), digitChars); err != nil {
+		return lexErrorState(err)
+	}
+
+	l.emit(numberToken)
 
 	return lexUncertainState
 }
