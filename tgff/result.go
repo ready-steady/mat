@@ -5,3 +5,8 @@ type Result struct {
 	graphCount  uint
 	tableCount  uint
 }
+
+type Block struct {
+	name   string
+	number uint
+}

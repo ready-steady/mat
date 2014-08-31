@@ -1,5 +1,9 @@
 package tgff
 
+import (
+	"strconv"
+)
+
 type tokenKind uint
 
 type token struct {
@@ -39,4 +43,9 @@ func (k tokenKind) String() string {
 	default:
 		return "Unknown"
 	}
+}
+
+func (t token) Uint() uint {
+	value, _ := strconv.ParseUint(t.value, 10, 32)
+	return uint(value)
 }
