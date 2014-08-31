@@ -31,7 +31,7 @@ func isDigit(c byte) bool {
 }
 
 func isIdently(c byte) bool {
-	return isUppercase(c) || c == '_'
+	return isUppercase(c) || isDigit(c) || c == '_'
 }
 
 func isNamely(c byte) bool {

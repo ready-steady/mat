@@ -90,12 +90,30 @@ func lexerRun(data string) []token {
 	return tokens
 }
 
-func TestLexerRunControl(t *testing.T) {
-	tokens := lexerRun("  \t \n   @ABCD 42 ")
+func TestLexerRunEmpty(t *testing.T) {
+	assertTokens(lexerRun(""), []token{}, t)
+	assertTokens(lexerRun("#"), []token{}, t)
+	assertTokens(lexerRun(" \n #\r\n   #"), []token{}, t)
+}
 
-	assertTokens(tokens, []token{
+func TestLexerRunControl(t *testing.T) {
+	assertTokens(lexerRun("  \t @ABCD\n   @AB_CD_42"), []token{
 		token{controlToken, "ABCD", nil},
-		token{numberToken, "42", nil},
+		token{controlToken, "AB_CD_42", nil},
+	}, t)
+}
+
+func TestLexerRunIdent(t *testing.T) {
+	assertTokens(lexerRun(" \t ABCD\t \n\n   AB_CD_42 \t\r"), []token{
+		token{identToken, "ABCD", nil},
+		token{identToken, "AB_CD_42", nil},
+	}, t)
+}
+
+func TestLexerRunName(t *testing.T) {
+	assertTokens(lexerRun("\t\t  abcd\t \n  \r ab_cd_42 \t"), []token{
+		token{nameToken, "abcd", nil},
+		token{nameToken, "ab_cd_42", nil},
 	}, t)
 }
 
