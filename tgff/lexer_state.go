@@ -11,9 +11,11 @@ type lexState func(*lexer) lexState
 const (
 	blockCloser = '}'
 	blockOpener = '{'
-	controlMark = '@'
 	commentMark = '#'
-	whitespaces = " \t\n\r"
+	controlMark = '@'
+	newLine     = "\n\r"
+	lineSpace   = " \t"
+	whitespace  = " \t\n\r"
 )
 
 func lexErrorState(err error) lexState {
@@ -25,16 +27,22 @@ func lexErrorState(err error) lexState {
 	}
 }
 
+func lexEndOrErrorState(err error) lexState {
+	if err == io.EOF {
+		return nil
+	} else {
+		return lexErrorState(err)
+	}
+}
+
 func lexUncertainState(l *lexer) lexState {
-	if err := l.skipAny(whitespaces); err != nil {
+	if err := l.skipAny(whitespace); err != nil {
 		return lexErrorState(err)
 	}
 
 	switch c, err := l.peek(); {
-	case err == io.EOF:
-		return nil
 	case err != nil:
-		return lexErrorState(err)
+		return lexEndOrErrorState(err)
 	case c == controlMark:
 		return lexControlState
 	case c == commentMark:
@@ -89,11 +97,45 @@ func lexControlState(l *lexer) lexState {
 }
 
 func lexCommentState(l *lexer) lexState {
-	if err := l.skipLine(); err != nil {
+	if err := l.skipOne(commentMark); err != nil {
+		return lexErrorState(err)
+	}
+
+	c, err := l.peek();
+
+	if err != nil {
+		return lexEndOrErrorState(err)
+	}
+
+	if c != '-' {
+		return lexHeaderState
+	}
+
+	if err = l.skipLine(); err != nil {
 		return lexErrorState(err)
 	}
 
 	return lexUncertainState
+}
+
+func lexHeaderState(l *lexer) lexState {
+	for {
+		if err := l.skipAny(lineSpace); err != nil {
+			return lexEndOrErrorState(err)
+		}
+
+		if c, err := l.peek(); err != nil {
+			return lexEndOrErrorState(err)
+		} else if isMember(newLine, c) {
+			return lexUncertainState
+		}
+
+		if err := l.readName(); err != nil {
+			return lexEndOrErrorState(err)
+		}
+
+		l.emit(titleToken)
+	}
 }
 
 func lexIdentState(l *lexer) lexState {

@@ -16,4 +16,5 @@ const (
 	identToken
 	nameToken
 	numberToken
+	titleToken
 )

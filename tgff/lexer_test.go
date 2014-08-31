@@ -100,7 +100,11 @@ func TestLexerRunControl(t *testing.T) {
 }
 
 func TestLexerRunComment(t *testing.T) {
-	tokens := lexerRun("  \t \n   # Bla-bla\n # Bla-bla ")
+	tokens := lexerRun("  \t \n   # one two\n #--- \n # three ")
 
-	assertTokens(tokens, []token{}, t)
+	assertTokens(tokens, []token{
+		{titleToken, "one", nil},
+		{titleToken, "two", nil},
+		{titleToken, "three", nil},
+	}, t)
 }
