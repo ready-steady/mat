@@ -13,16 +13,18 @@ const (
 
 type lexer struct {
 	reader *bufio.Reader
-	stream chan token
+	stream chan<- *token
+	done   chan bool
 	buffer []byte
 }
 
-func newLexer(reader io.Reader) (*lexer, <-chan token) {
-	stream := make(chan token)
+func newLexer(reader io.Reader, done chan bool) (*lexer, <-chan *token) {
+	stream := make(chan *token)
 
 	lexer := &lexer{
 		reader: bufio.NewReader(reader),
 		stream: stream,
+		done:   done,
 		buffer: make([]byte, 0, bufferCapacity),
 	}
 
@@ -33,6 +35,7 @@ func (l *lexer) run() {
 	for state := lexUncertainState; state != nil; {
 		state = state(l)
 	}
+	l.done <- true
 	close(l.stream)
 }
 
@@ -203,7 +206,12 @@ func (l *lexer) skipLine() error {
 	})
 }
 
-func (l *lexer) emit(kind tokenKind, more ...interface{}) {
-	defer l.flush()
-	l.stream <- token{kind, l.value(), more}
+func (l *lexer) send(kind tokenKind) bool {
+	select {
+	case l.stream <- &token{kind, l.value()}:
+		l.flush()
+		return true
+	case <-l.done:
+		return false
+	}
 }

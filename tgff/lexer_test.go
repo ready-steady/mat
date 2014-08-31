@@ -31,7 +31,7 @@ error:
 }
 
 func TestLexerReadAny(t *testing.T) {
-	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
+	lexer := fakeLexer("abbbaacdefg")
 
 	err := lexer.readAny("ab")
 
@@ -49,14 +49,14 @@ func TestLexerReadName(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		lexer, _ := newLexer(strings.NewReader(s.data))
+		lexer := fakeLexer(s.data)
 		_ = lexer.readName()
 		assertEqual(lexer.value(), s.name, t)
 	}
 }
 
 func TestLexerSkipAny(t *testing.T) {
-	lexer, _ := newLexer(strings.NewReader("abbbaacdefg"))
+	lexer := fakeLexer("abbbaacdefg")
 
 	err := lexer.skipAny("ab")
 
@@ -65,7 +65,7 @@ func TestLexerSkipAny(t *testing.T) {
 }
 
 func TestLexerSkipSequence(t *testing.T) {
-	lexer, _ := newLexer(strings.NewReader("abcde"))
+	lexer := fakeLexer("abcde")
 
 	err := lexer.skipSequence("ab")
 
@@ -77,60 +77,65 @@ func TestLexerSkipSequence(t *testing.T) {
 	assertFailure(err, t)
 }
 
-func lexerRun(data string) []token {
-	lexer, stream := newLexer(strings.NewReader(data))
+func TestLexerRunControl(t *testing.T) {
+	assertTokens(fakeLexerRun("  \t @ABCD\n   @AB_CD_42"), []token{
+		token{controlToken, "ABCD"},
+		token{controlToken, "AB_CD_42"},
+	}, t)
+}
+
+func TestLexerRunComment(t *testing.T) {
+	tokens := fakeLexerRun("  \t \n   # one two\n #--- \n # three ")
+
+	assertTokens(tokens, []token{
+		{titleToken, "one"},
+		{titleToken, "two"},
+		{titleToken, "three"},
+	}, t)
+}
+
+func TestLexerRunEmpty(t *testing.T) {
+	assertTokens(fakeLexerRun(""), []token{}, t)
+	assertTokens(fakeLexerRun("#"), []token{}, t)
+	assertTokens(fakeLexerRun(" \n #\r\n   #"), []token{}, t)
+}
+
+func TestLexerRunIdent(t *testing.T) {
+	assertTokens(fakeLexerRun(" \t ABCD\t \n\n   AB_CD_42 \t\r"), []token{
+		token{identToken, "ABCD"},
+		token{identToken, "AB_CD_42"},
+	}, t)
+}
+
+func TestLexerRunName(t *testing.T) {
+	assertTokens(fakeLexerRun("\t\t  abcd\t \n  \r ab_cd_42 \t"), []token{
+		token{nameToken, "abcd"},
+		token{nameToken, "ab_cd_42"},
+	}, t)
+}
+
+func TestLexerRunNumber(t *testing.T) {
+	assertTokens(fakeLexerRun("\t\t  0.42\t \n -4.2 \r +42.0 \t"), []token{
+		token{numberToken, "0.42"},
+		token{numberToken, "-4.2"},
+		token{numberToken, "+42.0"},
+	}, t)
+}
+
+func fakeLexerRun(data string) []token {
+	lexer, stream := newLexer(strings.NewReader(data), make(chan bool, 2))
 
 	go lexer.run()
 
 	tokens := []token{}
 	for token := range stream {
-		tokens = append(tokens, token)
+		tokens = append(tokens, *token)
 	}
 
 	return tokens
 }
 
-func TestLexerRunControl(t *testing.T) {
-	assertTokens(lexerRun("  \t @ABCD\n   @AB_CD_42"), []token{
-		token{controlToken, "ABCD", nil},
-		token{controlToken, "AB_CD_42", nil},
-	}, t)
-}
-
-func TestLexerRunComment(t *testing.T) {
-	tokens := lexerRun("  \t \n   # one two\n #--- \n # three ")
-
-	assertTokens(tokens, []token{
-		{titleToken, "one", nil},
-		{titleToken, "two", nil},
-		{titleToken, "three", nil},
-	}, t)
-}
-
-func TestLexerRunEmpty(t *testing.T) {
-	assertTokens(lexerRun(""), []token{}, t)
-	assertTokens(lexerRun("#"), []token{}, t)
-	assertTokens(lexerRun(" \n #\r\n   #"), []token{}, t)
-}
-
-func TestLexerRunIdent(t *testing.T) {
-	assertTokens(lexerRun(" \t ABCD\t \n\n   AB_CD_42 \t\r"), []token{
-		token{identToken, "ABCD", nil},
-		token{identToken, "AB_CD_42", nil},
-	}, t)
-}
-
-func TestLexerRunName(t *testing.T) {
-	assertTokens(lexerRun("\t\t  abcd\t \n  \r ab_cd_42 \t"), []token{
-		token{nameToken, "abcd", nil},
-		token{nameToken, "ab_cd_42", nil},
-	}, t)
-}
-
-func TestLexerRunNumber(t *testing.T) {
-	assertTokens(lexerRun("\t\t  0.42\t \n -4.2 \r +42.0 \t"), []token{
-		token{numberToken, "0.42", nil},
-		token{numberToken, "-4.2", nil},
-		token{numberToken, "+42.0", nil},
-	}, t)
+func fakeLexer(data string) *lexer {
+	lexer, _ := newLexer(strings.NewReader(data), make(chan bool, 2))
+	return lexer
 }

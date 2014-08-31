@@ -5,8 +5,10 @@ import (
 )
 
 func Parse(reader io.Reader) (*Result, error) {
-	lexer, stream := newLexer(reader)
-	parser, success, failure := newParser(stream)
+	done := make(chan bool, 2)
+
+	lexer, stream := newLexer(reader, done)
+	parser, success, failure := newParser(stream, done)
 
 	go lexer.run()
 	go parser.run()

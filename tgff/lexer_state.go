@@ -2,7 +2,6 @@ package tgff
 
 import (
 	"errors"
-	"fmt"
 	"io"
 )
 
@@ -22,7 +21,7 @@ const (
 func lexErrorState(err error) lexState {
 	return func(l *lexer) lexState {
 		l.set(err.Error())
-		l.emit(errorToken, err)
+		_ = l.send(errorToken)
 
 		return nil
 	}
@@ -59,7 +58,7 @@ func lexUncertainState(l *lexer) lexState {
 	case isNamely(c):
 		return lexNameState
 	default:
-		return lexErrorState(errors.New(fmt.Sprintf("unknown token starting from '%c'", c)))
+		return lexErrorState(errors.New("unknown token starting"))
 	}
 }
 
@@ -68,7 +67,9 @@ func lexBlockOpenState(l *lexer) lexState {
 		return lexErrorState(err)
 	}
 
-	l.emit(blockOpenToken)
+	if !l.send(blockOpenToken) {
+		return nil
+	}
 
 	return lexUncertainState
 }
@@ -78,7 +79,9 @@ func lexBlockCloseState(l *lexer) lexState {
 		return lexErrorState(err)
 	}
 
-	l.emit(blockCloseToken)
+	if !l.send(blockCloseToken) {
+		return nil
+	}
 
 	return lexUncertainState
 }
@@ -92,7 +95,9 @@ func lexControlState(l *lexer) lexState {
 		return lexErrorState(err)
 	}
 
-	l.emit(controlToken)
+	if !l.send(controlToken) {
+		return nil
+	}
 
 	return lexUncertainState
 }
@@ -102,7 +107,7 @@ func lexCommentState(l *lexer) lexState {
 		return lexErrorState(err)
 	}
 
-	c, err := l.peek();
+	c, err := l.peek()
 
 	if err != nil {
 		return lexEndOrErrorState(err)
@@ -135,7 +140,9 @@ func lexHeaderState(l *lexer) lexState {
 			return lexEndOrErrorState(err)
 		}
 
-		l.emit(titleToken)
+		if !l.send(titleToken) {
+			return nil
+		}
 	}
 }
 
@@ -144,7 +151,9 @@ func lexIdentState(l *lexer) lexState {
 		return lexErrorState(err)
 	}
 
-	l.emit(identToken)
+	if !l.send(identToken) {
+		return nil
+	}
 
 	return lexUncertainState
 }
@@ -154,7 +163,9 @@ func lexNameState(l *lexer) lexState {
 		return lexErrorState(err)
 	}
 
-	l.emit(nameToken)
+	if !l.send(nameToken) {
+		return nil
+	}
 
 	return lexUncertainState
 }
@@ -172,7 +183,9 @@ func lexNumberState(l *lexer) lexState {
 		return lexErrorState(err)
 	}
 
-	l.emit(numberToken)
+	if !l.send(numberToken) {
+		return nil
+	}
 
 	return lexUncertainState
 }

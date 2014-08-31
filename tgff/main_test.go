@@ -19,9 +19,9 @@ func TestParseSuccess(t *testing.T) {
 	result, err := Parse(file)
 
 	assertSuccess(err, t)
-	assertEqual(result.hyperPeriod, 1180, t)
-	assertEqual(result.graphCount, 5, t)
-	assertEqual(result.tableCount, 3, t)
+	assertEqual(result.hyperPeriod, uint(1180), t)
+	assertEqual(result.graphCount, uint(5), t)
+	assertEqual(result.tableCount, uint(3), t)
 }
 
 func TestParseFailure(t *testing.T) {
