@@ -64,9 +64,8 @@ func parControlState(p *parser) parState {
 		return parGraphState(graph)
 	} else {
 		table := &Table{
-			Name:       name.value,
-			Number:     number.Uint32(),
-			Attributes: make(map[string]float64, 10),
+			Name:   name.value,
+			Number: number.Uint32(),
 		}
 
 		p.result.Tables = append(p.result.Tables, table)
@@ -247,10 +246,13 @@ func parTableState(table *Table) parState {
 			return parErrorState(err)
 		}
 
-		if len(names) != len(values) {
+		cols := len(names)
+
+		if cols != len(values) {
 			return parErrorState(errors.New(fmt.Sprintf("the attribute header of %v is invalid", table)))
 		}
 
+		table.Attributes = make(map[string]float64, cols)
 		for i := range names {
 			table.Attributes[names[i].value] = values[i].Float64()
 		}
@@ -260,18 +262,28 @@ func parTableState(table *Table) parState {
 			return parErrorState(err)
 		}
 
-		cols := len(names)
+		cols = len(names)
 
 		values, err = p.receiveAny(numberToken)
 		if err != nil {
 			return parErrorState(err)
 		}
 
-		if len(values)%cols != 0 {
+		size := len(values)
+
+		if size%cols != 0 {
 			return parErrorState(errors.New(fmt.Sprintf("the data header of %v is invalid", table)))
 		}
 
-		// rows := len(values) / cols
+		table.Columns = make([]string, cols)
+		for i, name := range names {
+			table.Columns[i] = name.value
+		}
+
+		table.Data = make([]float64, size)
+		for i, value := range values {
+			table.Data[i] = value.Float64()
+		}
 
 		if _, err := p.receiveOne(blockCloseToken); err != nil {
 			return parErrorState(err)

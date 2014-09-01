@@ -42,6 +42,8 @@ type Table struct {
 	Name       string
 	Number     uint32
 	Attributes map[string]float64
+	Columns    []string
+	Data       []float64
 }
 
 func (t *Table) String() string {
