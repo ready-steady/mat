@@ -1,6 +1,7 @@
 package tgff
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -21,6 +22,10 @@ const (
 	numberToken
 	titleToken
 )
+
+func (t token) String() string {
+	return fmt.Sprintf("%v (%v)", t.kind, t.value)
+}
 
 func (k tokenKind) String() string {
 	switch k {

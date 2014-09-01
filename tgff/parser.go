@@ -50,10 +50,6 @@ func (p *parser) run() {
 	p.done <- true
 }
 
-func (p *parser) last() *token {
-	return p.buffer[len(p.buffer)-1]
-}
-
 func (p *parser) pop() *token {
 	size := len(p.buffer)
 
@@ -63,7 +59,15 @@ func (p *parser) pop() *token {
 	return token
 }
 
-func (p *parser) receive(accept func(*token) bool) error {
+func (p *parser) discard() {
+	_ = p.pop()
+}
+
+func (p *parser) unreceive() {
+	p.unreceived <- p.pop()
+}
+
+func (p *parser) receive(accept func(*token) bool) (*token, error) {
 	var token *token
 
 	select {
@@ -72,30 +76,36 @@ func (p *parser) receive(accept func(*token) bool) error {
 		select {
 		case token = <-p.stream:
 		case <-p.done:
-			return io.EOF
+			return nil, io.EOF
 		}
 	}
 
 	if token.kind == errorToken {
-		return errors.New(fmt.Sprintf("got an error '%v'", token.value))
+		return nil, errors.New(token.value)
 	}
 
 	if !accept(token) {
-		return errors.New(fmt.Sprintf("rejected %v", token.kind))
+		return nil, errors.New(fmt.Sprintf("rejected %v", token))
 	}
 
 	p.buffer = append(p.buffer, token)
 
-	return nil
+	return token, nil
 }
 
-func (p *parser) receiveOne(kind tokenKind) error {
+func (p *parser) receiveOne(kind tokenKind) (*token, error) {
 	return p.receive(func(token *token) bool {
 		return token.kind == kind
 	})
 }
 
-func (p *parser) receiveOneOf(kinds ...tokenKind) error {
+func (p *parser) receiveOneWith(kind tokenKind, value string) (*token, error) {
+	return p.receive(func(token *token) bool {
+		return token.kind == kind && token.value == value
+	})
+}
+
+func (p *parser) receiveOneOf(kinds ...tokenKind) (*token, error) {
 	return p.receive(func(token *token) bool {
 		for _, kind := range kinds {
 			if token.kind == kind {
@@ -106,23 +116,11 @@ func (p *parser) receiveOneOf(kinds ...tokenKind) error {
 	})
 }
 
-func (p *parser) unreceive() *token {
-	token := p.pop()
-
-	p.unreceived <- token
-
-	return token
-}
-
-func (p *parser) commitParameter() error {
-	value := p.pop()
-	name := p.pop()
-
-	switch name.value {
-	case hyperPeriodName:
-		p.result.hyperPeriod = value.Uint()
-		return nil
-	default:
-		return errors.New(fmt.Sprintf("unknown parameter '%v'", name.value))
+func (p *parser) peekOneOf(kinds ...tokenKind) (*token, error) {
+	if token, err := p.receiveOneOf(kinds...); err != nil {
+		return nil, err
+	} else {
+		p.unreceive()
+		return token, nil
 	}
 }
