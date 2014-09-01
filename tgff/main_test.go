@@ -86,6 +86,20 @@ func BenchmarkParse(b *testing.B) {
 	}
 }
 
+func ExampleParse() {
+	file, _ := os.Open("fixtures/simple.tgff")
+	defer file.Close()
+
+	result, _ := Parse(file)
+
+	fmt.Println("Task graphs:", len(result.Graphs))
+	fmt.Println("Data tables:", len(result.Tables))
+
+	// Output:
+	// Task graphs: 5
+	// Data tables: 3
+}
+
 func readFixture(name string) []byte {
 	path := path.Join(fixturePath, fmt.Sprintf("%s.tgff", name))
 	data, _ := ioutil.ReadFile(path)

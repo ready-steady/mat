@@ -16,15 +16,15 @@ type Graph struct {
 	Deadlines []*Deadline
 }
 
+type Task struct {
+	Name string
+	Type uint32
+}
+
 type Arc struct {
 	Name string
 	From string
 	To   string
-	Type uint32
-}
-
-type Task struct {
-	Name string
 	Type uint32
 }
 
