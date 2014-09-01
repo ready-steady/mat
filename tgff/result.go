@@ -1,7 +1,7 @@
 package tgff
 
 type Result struct {
-	HyperPeriod uint32
+	Period uint32
 
 	Graphs []*Graph
 	Tables []*Table

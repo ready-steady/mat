@@ -42,7 +42,7 @@ func parControlState(p *parser) parState {
 	}
 
 	if name.value == "HYPERPERIOD" {
-		p.result.HyperPeriod = number.Uint32()
+		p.result.Period = number.Uint32()
 
 		return parControlState
 	}

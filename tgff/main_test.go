@@ -22,7 +22,7 @@ func TestParseSuccess(t *testing.T) {
 
 	assertSuccess(err, t)
 
-	assertEqual(r.HyperPeriod, uint32(1180), t)
+	assertEqual(r.Period, uint32(1180), t)
 	assertEqual(len(r.Graphs), 5, t)
 	assertEqual(len(r.Tables), 3, t)
 
