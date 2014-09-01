@@ -1,7 +1,9 @@
 package tgff
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -30,6 +32,21 @@ func TestParseFailure(t *testing.T) {
 	_, err := Parse(reader)
 
 	assertFailure(err, t)
+}
+
+func BenchmarkParse(b *testing.B) {
+	data := readFixture("simple")
+
+	for i := 0; i < b.N; i++ {
+		Parse(bytes.NewReader(data))
+	}
+}
+
+func readFixture(name string) []byte {
+	path := path.Join(fixturePath, fmt.Sprintf("%s.tgff", name))
+	data, _ := ioutil.ReadFile(path)
+
+	return data
 }
 
 func openFixture(name string) *os.File {
