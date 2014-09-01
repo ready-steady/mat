@@ -48,11 +48,11 @@ func (l *lexer) value() string {
 }
 
 func (l *lexer) flush() {
-	l.buffer = l.buffer[0:0]
+	l.buffer = l.buffer[:0]
 }
 
 func (l *lexer) set(value string) {
-	l.buffer = append(l.buffer[0:0], []byte(value)...)
+	l.buffer = append(l.buffer[:0], []byte(value)...)
 }
 
 func (l *lexer) peek() (byte, error) {
