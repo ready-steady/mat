@@ -79,7 +79,7 @@ func (p *parser) receiveWhile(accept func(*token) bool) ([]*token, error) {
 
 	extendIfNeeded := func() {
 		size := len(tokens)
-		
+
 		if size < cap(tokens) {
 			return
 		}

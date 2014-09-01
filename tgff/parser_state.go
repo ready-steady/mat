@@ -267,7 +267,7 @@ func parTableState(table *Table) parState {
 			return parErrorState(err)
 		}
 
-		if len(values) % cols != 0 {
+		if len(values)%cols != 0 {
 			return parErrorState(errors.New(fmt.Sprintf("the data header of %v is invalid", table)))
 		}
 
