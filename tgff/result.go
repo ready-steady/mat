@@ -1,9 +1,5 @@
 package tgff
 
-import (
-	"fmt"
-)
-
 type Result struct {
 	HyperPeriod uint32
 
@@ -44,8 +40,4 @@ type Table struct {
 	Attributes map[string]float64
 	Columns    []string
 	Data       []float64
-}
-
-func (t *Table) String() string {
-	return fmt.Sprintf("%v (%v)", t.Name, t.Number)
 }

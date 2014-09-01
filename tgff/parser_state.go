@@ -249,7 +249,8 @@ func parTableState(table *Table) parState {
 		cols := len(names)
 
 		if cols != len(values) {
-			return parErrorState(errors.New(fmt.Sprintf("the attribute header of %v is invalid", table)))
+			return parErrorState(errors.New(fmt.Sprintf(
+				"the attribute header of %v %v is invalid", table.Name, table.Number)))
 		}
 
 		table.Attributes = make(map[string]float64, cols)
@@ -272,7 +273,8 @@ func parTableState(table *Table) parState {
 		size := len(values)
 
 		if size%cols != 0 {
-			return parErrorState(errors.New(fmt.Sprintf("the data header of %v is invalid", table)))
+			return parErrorState(errors.New(fmt.Sprintf(
+				"the data header of %v %v is invalid", table.Name, table.Number)))
 		}
 
 		table.Columns = make([]string, cols)
