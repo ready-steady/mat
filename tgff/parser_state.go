@@ -30,8 +30,22 @@ func parEndOrErrorState(err error) parState {
 	}
 }
 
-func parBlockState(p *parser) parState {
-	number, name := p.pop(), p.pop()
+func parControlState(p *parser) parState {
+	name, err := p.receiveOne(controlToken)
+	if err != nil {
+		return parEndOrErrorState(err)
+	}
+
+	number, err := p.receiveOne(numberToken)
+	if err != nil {
+		return parErrorState(err)
+	}
+
+	if name.value == "HYPERPERIOD" {
+		p.result.HyperPeriod = number.Uint32()
+
+		return parControlState
+	}
 
 	if _, err := p.receiveOne(blockOpenToken); err != nil {
 		return parErrorState(err)
@@ -42,7 +56,7 @@ func parBlockState(p *parser) parState {
 	} else if token.kind == identToken {
 		graph := &Graph{
 			Name:   name.value,
-			Number: number.Uint(),
+			Number: number.Uint32(),
 		}
 
 		p.result.Graphs = append(p.result.Graphs, graph)
@@ -50,8 +64,9 @@ func parBlockState(p *parser) parState {
 		return parGraphState(graph)
 	} else {
 		table := &Table{
-			Name:   name.value,
-			Number: number.Uint(),
+			Name:       name.value,
+			Number:     number.Uint32(),
+			Attributes: make(map[string]float64, 10),
 		}
 
 		p.result.Tables = append(p.result.Tables, table)
@@ -60,29 +75,8 @@ func parBlockState(p *parser) parState {
 	}
 }
 
-func parControlState(p *parser) parState {
-	name, err := p.receiveOne(controlToken)
-	if err != nil {
-		return parEndOrErrorState(err)
-	}
-
-	value, err := p.receiveOne(numberToken)
-	if err != nil {
-		return parErrorState(err)
-	}
-
-	if name.value != "HYPERPERIOD" {
-		return parBlockState
-	}
-
-	p.discard()
-	p.discard()
-
-	p.result.HyperPeriod = value.Uint()
-
-	return parControlState
-}
-
+// parGraphState processes the body of a task graph declaration including
+// PERIOD, TASK, ARC, and HARD_DEADLINE declarations.
 func parGraphState(graph *Graph) parState {
 	return func(p *parser) parState {
 		token, err := p.receiveOneOf(identToken, blockCloseToken)
@@ -91,8 +85,6 @@ func parGraphState(graph *Graph) parState {
 		}
 
 		if token.kind == blockCloseToken {
-			p.discard()
-
 			return parControlState
 		}
 
@@ -101,7 +93,7 @@ func parGraphState(graph *Graph) parState {
 			if token, err := p.receiveOneOf(numberToken); err != nil {
 				return parErrorState(err)
 			} else {
-				graph.Period = token.Uint()
+				graph.Period = token.Uint32()
 				return parGraphState(graph)
 			}
 		case "ARC":
@@ -116,9 +108,9 @@ func parGraphState(graph *Graph) parState {
 	}
 }
 
-// parArcState processes ARC declarations in the following format:
+// parArcState processes an ARC declaration in the following format:
 //
-//     ARC <name> FROM <task name> TO <task name> TYPE <number as uint>
+//     ARC <name> FROM <task name> TO <task name> TYPE <number as unsigned int>
 //
 // The leading ARC is assumed to be already consumed.
 func parArcState(graph *Graph) parState {
@@ -158,7 +150,7 @@ func parArcState(graph *Graph) parState {
 		if token, err := p.receiveOne(numberToken); err != nil {
 			return parErrorState(err)
 		} else {
-			arc.Type = token.Uint()
+			arc.Type = token.Uint32()
 		}
 
 		graph.Arcs = append(graph.Arcs, arc)
@@ -167,9 +159,9 @@ func parArcState(graph *Graph) parState {
 	}
 }
 
-// parTaskState processes with TASK declarations in the following format:
+// parTaskState processes a TASK declaration in the following format:
 //
-//     TASK <name> TYPE <number as uint>
+//     TASK <name> TYPE <number as unsigned int>
 //
 // The leading TASK is assumed to be already consumed.
 func parTaskState(graph *Graph) parState {
@@ -189,7 +181,7 @@ func parTaskState(graph *Graph) parState {
 		if token, err := p.receiveOne(numberToken); err != nil {
 			return parErrorState(err)
 		} else {
-			task.Type = token.Uint()
+			task.Type = token.Uint32()
 		}
 
 		graph.Tasks = append(graph.Tasks, task)
@@ -198,10 +190,10 @@ func parTaskState(graph *Graph) parState {
 	}
 }
 
-// parDeadlineState processes with HARD_DEADLINE declarations in the following
+// parDeadlineState processes a HARD_DEADLINE declaration in the following
 // format:
 //
-//     HARD_DEADLINE <deadline name> ON <task name> AT <time as uint>
+//     HARD_DEADLINE <deadline name> ON <task name> AT <time as unsigned int>
 //
 // The leading HARD_DEADLINE is assumed to be already consumed.
 func parDeadlineState(graph *Graph) parState {
@@ -231,7 +223,7 @@ func parDeadlineState(graph *Graph) parState {
 		if token, err := p.receiveOne(numberToken); err != nil {
 			return parErrorState(err)
 		} else {
-			deadline.At = token.Uint()
+			deadline.At = token.Uint32()
 		}
 
 		graph.Deadlines = append(graph.Deadlines, deadline)
@@ -240,8 +232,51 @@ func parDeadlineState(graph *Graph) parState {
 	}
 }
 
+// parTableState processes the body of a table declaration including two
+// headers, one for the attributes of the table and one for the actual data,
+// and the corresponding content.
 func parTableState(table *Table) parState {
 	return func(p *parser) parState {
-		return parCompleteState
+		names, err := p.receiveAny(titleToken)
+		if err != nil {
+			return parErrorState(err)
+		}
+
+		values, err := p.receiveAny(numberToken)
+		if err != nil {
+			return parErrorState(err)
+		}
+
+		if len(names) != len(values) {
+			return parErrorState(errors.New(fmt.Sprintf("the attribute header of %v is invalid", table)))
+		}
+
+		for i := range names {
+			table.Attributes[names[i].value] = values[i].Float64()
+		}
+
+		names, err = p.receiveAny(titleToken)
+		if err != nil {
+			return parErrorState(err)
+		}
+
+		cols := len(names)
+
+		values, err = p.receiveAny(numberToken)
+		if err != nil {
+			return parErrorState(err)
+		}
+
+		if len(values) % cols != 0 {
+			return parErrorState(errors.New(fmt.Sprintf("the data header of %v is invalid", table)))
+		}
+
+		// rows := len(values) / cols
+
+		if _, err := p.receiveOne(blockCloseToken); err != nil {
+			return parErrorState(err)
+		}
+
+		return parControlState
 	}
 }

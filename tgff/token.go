@@ -50,7 +50,12 @@ func (k tokenKind) String() string {
 	}
 }
 
-func (t token) Uint() uint {
+func (t token) Uint32() uint32 {
 	value, _ := strconv.ParseUint(t.value, 10, 32)
-	return uint(value)
+	return uint32(value)
+}
+
+func (t token) Float64() float64 {
+	value, _ := strconv.ParseFloat(t.value, 64)
+	return value
 }

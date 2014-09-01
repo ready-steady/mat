@@ -19,7 +19,7 @@ func TestParseSuccess(t *testing.T) {
 	result, err := Parse(file)
 
 	assertSuccess(err, t)
-	assertEqual(result.HyperPeriod, uint(1180), t)
+	assertEqual(result.HyperPeriod, uint32(1180), t)
 	assertEqual(len(result.Graphs), 5, t)
 	assertEqual(len(result.Tables), 3, t)
 }

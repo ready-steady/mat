@@ -6,21 +6,15 @@ import (
 	"io"
 )
 
-const (
-	parBufferCapacity = 10
-)
-
 type parser struct {
 	stream <-chan *token
-	done   chan bool
+	buffer chan *token
 
-	buffer     []*token
-	unreceived chan *token
-
-	result *Result
-
+	done    chan bool
 	success chan<- *Result
 	failure chan<- error
+
+	result *Result
 }
 
 func newParser(stream <-chan *token, done chan bool) (*parser, <-chan *Result, <-chan error) {
@@ -29,15 +23,13 @@ func newParser(stream <-chan *token, done chan bool) (*parser, <-chan *Result, <
 
 	parser := &parser{
 		stream: stream,
-		done:   done,
+		buffer: make(chan *token, 1),
 
-		buffer:     make([]*token, 0, parBufferCapacity),
-		unreceived: make(chan *token, 1),
-
-		result: &Result{},
-
+		done:    done,
 		success: success,
 		failure: failure,
+
+		result: &Result{},
 	}
 
 	return parser, success, failure
@@ -50,31 +42,22 @@ func (p *parser) run() {
 	p.done <- true
 }
 
-func (p *parser) pop() *token {
-	size := len(p.buffer)
-
-	token := p.buffer[size-1]
-	p.buffer = p.buffer[0 : size-1]
-
-	return token
-}
-
-func (p *parser) discard() {
-	_ = p.pop()
-}
-
-func (p *parser) unreceive() {
-	p.unreceived <- p.pop()
+func (p *parser) unreceive(token *token) {
+	p.buffer <- token
 }
 
 func (p *parser) receive(accept func(*token) bool) (*token, error) {
 	var token *token
+	var ok bool
 
 	select {
-	case token = <-p.unreceived:
+	case token = <-p.buffer:
 	default:
 		select {
-		case token = <-p.stream:
+		case token, ok = <-p.stream:
+			if !ok {
+				return nil, io.EOF
+			}
 		case <-p.done:
 			return nil, io.EOF
 		}
@@ -88,9 +71,50 @@ func (p *parser) receive(accept func(*token) bool) (*token, error) {
 		return nil, errors.New(fmt.Sprintf("rejected %v", token))
 	}
 
-	p.buffer = append(p.buffer, token)
-
 	return token, nil
+}
+
+func (p *parser) receiveWhile(accept func(*token) bool) ([]*token, error) {
+	tokens := make([]*token, 0, 100)
+
+	extendIfNeeded := func() {
+		size := len(tokens)
+		
+		if size < cap(tokens) {
+			return
+		}
+
+		newTokens := make([]*token, 0, 2*size)
+		copy(newTokens, tokens)
+		tokens = newTokens
+	}
+
+	for {
+		var token *token
+
+		select {
+		case token = <-p.buffer:
+		default:
+			select {
+			case token = <-p.stream:
+			case <-p.done:
+				return tokens, io.EOF
+			}
+		}
+
+		if token.kind == errorToken {
+			return tokens, errors.New(token.value)
+		}
+
+		if !accept(token) {
+			p.unreceive(token)
+			return tokens, nil
+		}
+
+		extendIfNeeded()
+
+		tokens = append(tokens, token)
+	}
 }
 
 func (p *parser) receiveOne(kind tokenKind) (*token, error) {
@@ -120,7 +144,13 @@ func (p *parser) peekOneOf(kinds ...tokenKind) (*token, error) {
 	if token, err := p.receiveOneOf(kinds...); err != nil {
 		return nil, err
 	} else {
-		p.unreceive()
+		p.unreceive(token)
 		return token, nil
 	}
+}
+
+func (p *parser) receiveAny(kind tokenKind) ([]*token, error) {
+	return p.receiveWhile(func(token *token) bool {
+		return token.kind == kind
+	})
 }
