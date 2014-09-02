@@ -1,7 +1,4 @@
-inputs := $(wildcard *.tgffopt)
-outputs := $(inputs:%.tgffopt=%.tgff)
-
-all: $(outputs)
+all: $(patsubst %.tgffopt,%.tgff,$(wildcard *.tgffopt))
 
 %.tgff: %.tgffopt
 	tgff $*
