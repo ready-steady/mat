@@ -86,6 +86,14 @@ func BenchmarkParseSimple(b *testing.B) {
 	}
 }
 
+func BenchmarkParseComplex(b *testing.B) {
+	data := readFixture("comples")
+
+	for i := 0; i < b.N; i++ {
+		Parse(bytes.NewReader(data))
+	}
+}
+
 func ExampleParse() {
 	file, _ := os.Open("fixtures/simple.tgff")
 	defer file.Close()

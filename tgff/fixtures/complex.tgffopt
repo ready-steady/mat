@@ -1,0 +1,19 @@
+seed 4
+
+tg_label APPLICATION
+tg_cnt 1
+task_cnt 640 0.001
+task_type_cnt 320
+task_trans_time 1
+deadline_jitter 0
+period_mul 1
+task_degree 3 4
+task_unique false
+tg_write
+
+table_label PROCESSOR
+table_cnt 32
+type_attrib \
+  dynamic_power 10 9 0 0.01, \
+  execution_time 0.020 0.010 0 0.001
+pe_write
