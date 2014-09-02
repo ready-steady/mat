@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	parBufferCapacity = 100
+	parBufferCap = 100
 )
 
 type parser struct {
@@ -74,7 +74,7 @@ func (p *parser) receive(accept func(*token) bool) (*token, error) {
 }
 
 func (p *parser) receiveWhile(accept func(*token) bool) ([]*token, error) {
-	tokens := make([]*token, 0, parBufferCapacity)
+	tokens := make([]*token, 0, parBufferCap)
 
 	extendIfNeeded := func() {
 		size := len(tokens)

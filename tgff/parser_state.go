@@ -54,17 +54,9 @@ func parControlState(p *parser) parState {
 	if token, err := p.peekOneOf(identToken, titleToken); err != nil {
 		return parErrorState(err)
 	} else if token.kind == identToken {
-		p.result.Graphs = append(p.result.Graphs, Graph{
-			Name:   name.value,
-			Number: number.Uint32(),
-		})
-		return parGraphState(&p.result.Graphs[len(p.result.Graphs)-1])
+		return parGraphState(p.result.addGraph(name.value, number.Uint32()))
 	} else {
-		p.result.Tables = append(p.result.Tables, Table{
-			Name:   name.value,
-			Number: number.Uint32(),
-		})
-		return parTableState(&p.result.Tables[len(p.result.Tables)-1])
+		return parTableState(p.result.addTable(name.value, number.Uint32()))
 	}
 }
 
@@ -101,6 +93,35 @@ func parGraphState(graph *Graph) parState {
 	}
 }
 
+// parTaskState processes a TASK declaration in the following format:
+//
+//     TASK <name> TYPE <number as unsigned int>
+//
+// The leading TASK is assumed to be already consumed.
+func parTaskState(graph *Graph) parState {
+	return func(p *parser) parState {
+		task := graph.addTask()
+
+		if token, err := p.receiveOne(nameToken); err != nil {
+			return parErrorState(err)
+		} else {
+			task.Name = token.value
+		}
+
+		if _, err := p.receiveOneWith(identToken, "TYPE"); err != nil {
+			return parErrorState(err)
+		}
+
+		if token, err := p.receiveOne(numberToken); err != nil {
+			return parErrorState(err)
+		} else {
+			task.Type = token.Uint32()
+		}
+
+		return parGraphState(graph)
+	}
+}
+
 // parArcState processes an ARC declaration in the following format:
 //
 //     ARC <name> FROM <task name> TO <task name> TYPE <number as unsigned int>
@@ -108,7 +129,7 @@ func parGraphState(graph *Graph) parState {
 // The leading ARC is assumed to be already consumed.
 func parArcState(graph *Graph) parState {
 	return func(p *parser) parState {
-		arc := Arc{}
+		arc := graph.addArc()
 
 		if token, err := p.receiveOne(nameToken); err != nil {
 			return parErrorState(err)
@@ -146,39 +167,6 @@ func parArcState(graph *Graph) parState {
 			arc.Type = token.Uint32()
 		}
 
-		graph.Arcs = append(graph.Arcs, arc)
-
-		return parGraphState(graph)
-	}
-}
-
-// parTaskState processes a TASK declaration in the following format:
-//
-//     TASK <name> TYPE <number as unsigned int>
-//
-// The leading TASK is assumed to be already consumed.
-func parTaskState(graph *Graph) parState {
-	return func(p *parser) parState {
-		task := Task{}
-
-		if token, err := p.receiveOne(nameToken); err != nil {
-			return parErrorState(err)
-		} else {
-			task.Name = token.value
-		}
-
-		if _, err := p.receiveOneWith(identToken, "TYPE"); err != nil {
-			return parErrorState(err)
-		}
-
-		if token, err := p.receiveOne(numberToken); err != nil {
-			return parErrorState(err)
-		} else {
-			task.Type = token.Uint32()
-		}
-
-		graph.Tasks = append(graph.Tasks, task)
-
 		return parGraphState(graph)
 	}
 }
@@ -191,7 +179,7 @@ func parTaskState(graph *Graph) parState {
 // The leading HARD_DEADLINE is assumed to be already consumed.
 func parDeadlineState(graph *Graph) parState {
 	return func(p *parser) parState {
-		deadline := Deadline{}
+		deadline := graph.addDeadline()
 
 		if token, err := p.receiveOne(nameToken); err != nil {
 			return parErrorState(err)
@@ -218,8 +206,6 @@ func parDeadlineState(graph *Graph) parState {
 		} else {
 			deadline.At = token.Uint32()
 		}
-
-		graph.Deadlines = append(graph.Deadlines, deadline)
 
 		return parGraphState(graph)
 	}

@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	lexStreamCapacity = 0
-	lexBufferCapacity = 42
+	lexStreamCap = 0
+	lexBufferCap = 42
 )
 
 type lexer struct {
@@ -20,13 +20,13 @@ type lexer struct {
 }
 
 func newLexer(reader io.Reader, abort <-chan bool) (*lexer, <-chan *token) {
-	stream := make(chan *token, lexStreamCapacity)
+	stream := make(chan *token, lexStreamCap)
 
 	lexer := &lexer{
 		reader: bufio.NewReader(reader),
 		stream: stream,
 		abort:  abort,
-		buffer: make([]byte, 0, lexBufferCapacity),
+		buffer: make([]byte, 0, lexBufferCap),
 	}
 
 	return lexer, stream
