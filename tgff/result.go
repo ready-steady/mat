@@ -3,17 +3,17 @@ package tgff
 type Result struct {
 	Period uint32
 
-	Graphs []*Graph
-	Tables []*Table
+	Graphs []Graph
+	Tables []Table
 }
 
 type Graph struct {
 	Name      string
 	Number    uint32
 	Period    uint32
-	Tasks     []*Task
-	Arcs      []*Arc
-	Deadlines []*Deadline
+	Tasks     []Task
+	Arcs      []Arc
+	Deadlines []Deadline
 }
 
 type Task struct {
@@ -38,6 +38,10 @@ type Table struct {
 	Name       string
 	Number     uint32
 	Attributes map[string]float64
-	Columns    []string
-	Data       []float64
+	Columns    []Column
+}
+
+type Column struct {
+	Name string
+	Data []float64
 }

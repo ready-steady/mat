@@ -54,23 +54,17 @@ func parControlState(p *parser) parState {
 	if token, err := p.peekOneOf(identToken, titleToken); err != nil {
 		return parErrorState(err)
 	} else if token.kind == identToken {
-		graph := &Graph{
+		p.result.Graphs = append(p.result.Graphs, Graph{
 			Name:   name.value,
 			Number: number.Uint32(),
-		}
-
-		p.result.Graphs = append(p.result.Graphs, graph)
-
-		return parGraphState(graph)
+		})
+		return parGraphState(&p.result.Graphs[len(p.result.Graphs)-1])
 	} else {
-		table := &Table{
+		p.result.Tables = append(p.result.Tables, Table{
 			Name:   name.value,
 			Number: number.Uint32(),
-		}
-
-		p.result.Tables = append(p.result.Tables, table)
-
-		return parTableState(table)
+		})
+		return parTableState(&p.result.Tables[len(p.result.Tables)-1])
 	}
 }
 
@@ -114,7 +108,7 @@ func parGraphState(graph *Graph) parState {
 // The leading ARC is assumed to be already consumed.
 func parArcState(graph *Graph) parState {
 	return func(p *parser) parState {
-		arc := &Arc{}
+		arc := Arc{}
 
 		if token, err := p.receiveOne(nameToken); err != nil {
 			return parErrorState(err)
@@ -165,7 +159,7 @@ func parArcState(graph *Graph) parState {
 // The leading TASK is assumed to be already consumed.
 func parTaskState(graph *Graph) parState {
 	return func(p *parser) parState {
-		task := &Task{}
+		task := Task{}
 
 		if token, err := p.receiveOne(nameToken); err != nil {
 			return parErrorState(err)
@@ -197,7 +191,7 @@ func parTaskState(graph *Graph) parState {
 // The leading HARD_DEADLINE is assumed to be already consumed.
 func parDeadlineState(graph *Graph) parState {
 	return func(p *parser) parState {
-		deadline := &Deadline{}
+		deadline := Deadline{}
 
 		if token, err := p.receiveOne(nameToken); err != nil {
 			return parErrorState(err)
@@ -277,14 +271,15 @@ func parTableState(table *Table) parState {
 				"the data header of %v %v is invalid", table.Name, table.Number)))
 		}
 
-		table.Columns = make([]string, cols)
-		for i, name := range names {
-			table.Columns[i] = name.value
-		}
+		rows := size / cols
 
-		table.Data = make([]float64, size)
-		for i, value := range values {
-			table.Data[i] = value.Float64()
+		table.Columns = make([]Column, cols)
+		for i, name := range names {
+			table.Columns[i].Name = name.value
+			table.Columns[i].Data = make([]float64, rows)
+			for j := 0; j < rows; j++ {
+				table.Columns[i].Data[j] = values[j*cols+i].Float64()
+			}
 		}
 
 		if _, err := p.receiveOne(blockCloseToken); err != nil {

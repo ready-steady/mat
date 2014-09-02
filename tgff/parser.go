@@ -15,14 +15,14 @@ type parser struct {
 	buffer chan *token
 
 	abort   chan<- bool
-	success chan<- *Result
+	success chan<- Result
 	failure chan<- error
 
-	result *Result
+	result Result
 }
 
-func newParser(stream <-chan *token, abort chan<- bool) (*parser, <-chan *Result, <-chan error) {
-	success := make(chan *Result)
+func newParser(stream <-chan *token, abort chan<- bool) (*parser, <-chan Result, <-chan error) {
+	success := make(chan Result)
 	failure := make(chan error)
 
 	parser := &parser{
@@ -33,7 +33,7 @@ func newParser(stream <-chan *token, abort chan<- bool) (*parser, <-chan *Result
 		success: success,
 		failure: failure,
 
-		result: &Result{},
+		result: Result{},
 	}
 
 	return parser, success, failure
