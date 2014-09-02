@@ -96,11 +96,8 @@ func BenchmarkParseComplex(b *testing.B) {
 	}
 }
 
-func ExampleParse() {
-	file, _ := os.Open("fixtures/simple.tgff")
-	defer file.Close()
-
-	result, _ := Parse(file)
+func ExampleParseFile() {
+	result, _ := ParseFile("fixtures/simple.tgff")
 
 	fmt.Println("Task graphs:", len(result.Graphs))
 	fmt.Println("Data tables:", len(result.Tables))
