@@ -2,6 +2,8 @@ package tgff
 
 import (
 	"testing"
+
+	"github.com/goesd/support/assert"
 )
 
 func TestParserReceiveOneSuccess(t *testing.T) {
@@ -14,7 +16,7 @@ func TestParserReceiveOneSuccess(t *testing.T) {
 
 	_, err := parser.receiveOne(numberToken)
 
-	assertSuccess(err, t)
+	assert.Success(err, t)
 }
 
 func TestParserReceiveOneFailure(t *testing.T) {
@@ -27,7 +29,7 @@ func TestParserReceiveOneFailure(t *testing.T) {
 
 	_, err := parser.receiveOne(numberToken)
 
-	assertFailure(err, t)
+	assert.Failure(err, t)
 }
 
 func TestParserUnreceive(t *testing.T) {
@@ -40,15 +42,15 @@ func TestParserUnreceive(t *testing.T) {
 	}()
 
 	token, _ := parser.receiveOne(numberToken)
-	assertEqual(token.value, "First", t)
+	assert.Equal(token.value, "First", t)
 
 	parser.unreceive(token)
 
 	token, _ = parser.receiveOne(numberToken)
-	assertEqual(token.value, "First", t)
+	assert.Equal(token.value, "First", t)
 
 	token, _ = parser.receiveOne(numberToken)
-	assertEqual(token.value, "Second", t)
+	assert.Equal(token.value, "Second", t)
 }
 
 func TestParserPeekOneOf(t *testing.T) {
@@ -60,10 +62,10 @@ func TestParserPeekOneOf(t *testing.T) {
 	}()
 
 	token, _ := parser.peekOneOf(numberToken, identToken)
-	assertEqual(token.value, "First", t)
+	assert.Equal(token.value, "First", t)
 
 	token, _ = parser.receiveOne(numberToken)
-	assertEqual(token.value, "First", t)
+	assert.Equal(token.value, "First", t)
 }
 
 func TestParserRunClose(t *testing.T) {

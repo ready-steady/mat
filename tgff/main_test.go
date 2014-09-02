@@ -8,6 +8,8 @@ import (
 	"path"
 	"strings"
 	"testing"
+
+	"github.com/goesd/support/assert"
 )
 
 const (
@@ -20,11 +22,11 @@ func TestParseSuccess(t *testing.T) {
 
 	r, err := Parse(file)
 
-	assertSuccess(err, t)
+	assert.Success(err, t)
 
-	assertEqual(r.Period, uint32(1180), t)
-	assertEqual(len(r.Graphs), 5, t)
-	assertEqual(len(r.Tables), 3, t)
+	assert.Equal(r.Period, uint32(1180), t)
+	assert.Equal(len(r.Graphs), 5, t)
+	assert.Equal(len(r.Tables), 3, t)
 
 	graphs := []struct {
 		period    uint32
@@ -40,13 +42,13 @@ func TestParseSuccess(t *testing.T) {
 	}
 
 	for i, graph := range graphs {
-		assertEqual(r.Graphs[i].Name, "TASK_GRAPH", t)
-		assertEqual(r.Graphs[i].Number, uint32(i), t)
-		assertEqual(r.Graphs[i].Period, graph.period, t)
+		assert.Equal(r.Graphs[i].Name, "TASK_GRAPH", t)
+		assert.Equal(r.Graphs[i].Number, uint32(i), t)
+		assert.Equal(r.Graphs[i].Period, graph.period, t)
 
-		assertEqual(len(r.Graphs[i].Tasks), graph.tasks, t)
-		assertEqual(len(r.Graphs[i].Arcs), graph.arcs, t)
-		assertEqual(len(r.Graphs[i].Deadlines), graph.deadlines, t)
+		assert.Equal(len(r.Graphs[i].Tasks), graph.tasks, t)
+		assert.Equal(len(r.Graphs[i].Arcs), graph.arcs, t)
+		assert.Equal(len(r.Graphs[i].Deadlines), graph.deadlines, t)
 	}
 
 	tables := []struct {
@@ -58,16 +60,16 @@ func TestParseSuccess(t *testing.T) {
 	}
 
 	for i, table := range tables {
-		assertEqual(r.Tables[i].Name, "COMMUN", t)
-		assertEqual(r.Tables[i].Number, uint32(i), t)
-		assertEqual(r.Tables[i].Attributes["price"], table.price, t)
+		assert.Equal(r.Tables[i].Name, "COMMUN", t)
+		assert.Equal(r.Tables[i].Number, uint32(i), t)
+		assert.Equal(r.Tables[i].Attributes["price"], table.price, t)
 
-		assertEqual(len(r.Tables[i].Columns), 2, t)
-		assertEqual(r.Tables[i].Columns[0], "type", t)
-		assertEqual(r.Tables[i].Columns[1], "exec_time", t)
+		assert.Equal(len(r.Tables[i].Columns), 2, t)
+		assert.Equal(r.Tables[i].Columns[0], "type", t)
+		assert.Equal(r.Tables[i].Columns[1], "exec_time", t)
 	}
 
-	assertEqualSlices(r.Tables[2].Data, fixtureSimpleTableData2, t)
+	assert.DeepEqual(r.Tables[2].Data, fixtureSimpleTableData2, t)
 }
 
 func TestParseFailure(t *testing.T) {
@@ -75,7 +77,7 @@ func TestParseFailure(t *testing.T) {
 
 	_, err := Parse(reader)
 
-	assertFailure(err, t)
+	assert.Failure(err, t)
 }
 
 func BenchmarkParseSimple(b *testing.B) {

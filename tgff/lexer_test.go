@@ -3,6 +3,8 @@ package tgff
 import (
 	"strings"
 	"testing"
+
+	"github.com/goesd/support/assert"
 )
 
 func assertLexerAt(lexer *lexer, char byte, t *testing.T) {
@@ -35,9 +37,9 @@ func TestLexerReadAny(t *testing.T) {
 
 	err := lexer.readAny("ab")
 
-	assertSuccess(err, t)
+	assert.Success(err, t)
 	assertLexerAt(lexer, 'c', t)
-	assertEqual(lexer.value(), "abbbaa", t)
+	assert.Equal(lexer.value(), "abbbaa", t)
 }
 
 func TestLexerReadName(t *testing.T) {
@@ -51,7 +53,7 @@ func TestLexerReadName(t *testing.T) {
 	for _, s := range scenarios {
 		lexer := fakeLexer(s.data)
 		_ = lexer.readName()
-		assertEqual(lexer.value(), s.name, t)
+		assert.Equal(lexer.value(), s.name, t)
 	}
 }
 
@@ -60,7 +62,7 @@ func TestLexerSkipAny(t *testing.T) {
 
 	err := lexer.skipAny("ab")
 
-	assertSuccess(err, t)
+	assert.Success(err, t)
 	assertLexerAt(lexer, 'c', t)
 }
 
@@ -69,12 +71,12 @@ func TestLexerSkipSequence(t *testing.T) {
 
 	err := lexer.skipSequence("ab")
 
-	assertSuccess(err, t)
+	assert.Success(err, t)
 	assertLexerAt(lexer, 'c', t)
 
 	err = lexer.skipSequence("d")
 
-	assertFailure(err, t)
+	assert.Failure(err, t)
 }
 
 func TestLexerRunControl(t *testing.T) {
