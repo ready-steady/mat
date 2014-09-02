@@ -123,7 +123,7 @@ func TestLexerRunNumber(t *testing.T) {
 }
 
 func fakeLexerRun(data string) []token {
-	lexer, stream := newLexer(strings.NewReader(data), make(chan bool, 2))
+	lexer, stream := newLexer(strings.NewReader(data), make(chan bool))
 
 	go lexer.run()
 
@@ -136,6 +136,6 @@ func fakeLexerRun(data string) []token {
 }
 
 func fakeLexer(data string) *lexer {
-	lexer, _ := newLexer(strings.NewReader(data), make(chan bool, 2))
+	lexer, _ := newLexer(strings.NewReader(data), make(chan bool))
 	return lexer
 }

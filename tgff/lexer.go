@@ -8,23 +8,24 @@ import (
 )
 
 const (
+	lexStreamCapacity = 0
 	lexBufferCapacity = 42
 )
 
 type lexer struct {
 	reader *bufio.Reader
 	stream chan<- *token
-	done   chan bool
+	abort  <-chan bool
 	buffer []byte
 }
 
-func newLexer(reader io.Reader, done chan bool) (*lexer, <-chan *token) {
-	stream := make(chan *token)
+func newLexer(reader io.Reader, abort <-chan bool) (*lexer, <-chan *token) {
+	stream := make(chan *token, lexStreamCapacity)
 
 	lexer := &lexer{
 		reader: bufio.NewReader(reader),
 		stream: stream,
-		done:   done,
+		abort:  abort,
 		buffer: make([]byte, 0, lexBufferCapacity),
 	}
 
@@ -35,7 +36,6 @@ func (l *lexer) run() {
 	for state := lexUncertainState; state != nil; {
 		state = state(l)
 	}
-	l.done <- true
 	close(l.stream)
 }
 
@@ -211,7 +211,7 @@ func (l *lexer) send(kind tokenKind) bool {
 	case l.stream <- &token{kind, l.value()}:
 		l.flush()
 		return true
-	case <-l.done:
+	case <-l.abort:
 		return false
 	}
 }

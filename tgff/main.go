@@ -13,10 +13,10 @@ import (
 // command-line tool from a TGFFOPT file (*.tgffopt), and returns its
 // representation in a Result struct.
 func Parse(reader io.Reader) (*Result, error) {
-	done := make(chan bool, 2)
+	abort := make(chan bool, 1)
 
-	lexer, stream := newLexer(reader, done)
-	parser, success, failure := newParser(stream, done)
+	lexer, stream := newLexer(reader, abort)
+	parser, success, failure := newParser(stream, abort)
 
 	go lexer.run()
 	go parser.run()

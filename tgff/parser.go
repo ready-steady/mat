@@ -6,18 +6,22 @@ import (
 	"io"
 )
 
+const (
+	parBufferCapacity = 100
+)
+
 type parser struct {
 	stream <-chan *token
 	buffer chan *token
 
-	done    chan bool
+	abort   chan<- bool
 	success chan<- *Result
 	failure chan<- error
 
 	result *Result
 }
 
-func newParser(stream <-chan *token, done chan bool) (*parser, <-chan *Result, <-chan error) {
+func newParser(stream <-chan *token, abort chan<- bool) (*parser, <-chan *Result, <-chan error) {
 	success := make(chan *Result)
 	failure := make(chan error)
 
@@ -25,7 +29,7 @@ func newParser(stream <-chan *token, done chan bool) (*parser, <-chan *Result, <
 		stream: stream,
 		buffer: make(chan *token, 1),
 
-		done:    done,
+		abort:   abort,
 		success: success,
 		failure: failure,
 
@@ -39,7 +43,7 @@ func (p *parser) run() {
 	for state := parControlState; state != nil; {
 		state = state(p)
 	}
-	p.done <- true
+	p.abort <- true
 }
 
 func (p *parser) unreceive(token *token) {
@@ -53,12 +57,7 @@ func (p *parser) receive(accept func(*token) bool) (*token, error) {
 	select {
 	case token = <-p.buffer:
 	default:
-		select {
-		case token, ok = <-p.stream:
-			if !ok {
-				return nil, io.EOF
-			}
-		case <-p.done:
+		if token, ok = <-p.stream; !ok {
 			return nil, io.EOF
 		}
 	}
@@ -75,7 +74,7 @@ func (p *parser) receive(accept func(*token) bool) (*token, error) {
 }
 
 func (p *parser) receiveWhile(accept func(*token) bool) ([]*token, error) {
-	tokens := make([]*token, 0, 100)
+	tokens := make([]*token, 0, parBufferCapacity)
 
 	extendIfNeeded := func() {
 		size := len(tokens)
@@ -89,16 +88,15 @@ func (p *parser) receiveWhile(accept func(*token) bool) ([]*token, error) {
 		tokens = newTokens
 	}
 
-	for {
-		var token *token
+	var token *token
+	var ok bool
 
+	for {
 		select {
 		case token = <-p.buffer:
 		default:
-			select {
-			case token = <-p.stream:
-			case <-p.done:
-				return tokens, io.EOF
+			if token, ok = <-p.stream; !ok {
+				return tokens, nil
 			}
 		}
 

@@ -5,8 +5,8 @@ import (
 )
 
 func TestParserReceiveOneSuccess(t *testing.T) {
-	stream, done := make(chan *token), make(chan bool)
-	parser, _, _ := newParser(stream, done)
+	stream, abort := make(chan *token), make(chan bool)
+	parser, _, _ := newParser(stream, abort)
 
 	go func() {
 		stream <- &token{numberToken, ""}
@@ -18,8 +18,8 @@ func TestParserReceiveOneSuccess(t *testing.T) {
 }
 
 func TestParserReceiveOneFailure(t *testing.T) {
-	stream, done := make(chan *token), make(chan bool)
-	parser, _, _ := newParser(stream, done)
+	stream, abort := make(chan *token), make(chan bool)
+	parser, _, _ := newParser(stream, abort)
 
 	go func() {
 		stream <- &token{identToken, ""}
@@ -31,8 +31,8 @@ func TestParserReceiveOneFailure(t *testing.T) {
 }
 
 func TestParserUnreceive(t *testing.T) {
-	stream, done := make(chan *token), make(chan bool)
-	parser, _, _ := newParser(stream, done)
+	stream, abort := make(chan *token), make(chan bool)
+	parser, _, _ := newParser(stream, abort)
 
 	go func() {
 		stream <- &token{numberToken, "First"}
@@ -52,8 +52,8 @@ func TestParserUnreceive(t *testing.T) {
 }
 
 func TestParserPeekOneOf(t *testing.T) {
-	stream, done := make(chan *token), make(chan bool)
-	parser, _, _ := newParser(stream, done)
+	stream, abort := make(chan *token), make(chan bool)
+	parser, _, _ := newParser(stream, abort)
 
 	go func() {
 		stream <- &token{numberToken, "First"}
@@ -66,23 +66,9 @@ func TestParserPeekOneOf(t *testing.T) {
 	assertEqual(token.value, "First", t)
 }
 
-func TestParserRunDone(t *testing.T) {
-	stream, done := make(chan *token), make(chan bool)
-	parser, success, failure := newParser(stream, done)
-
-	go parser.run()
-	done <- true
-
-	select {
-	case <-success:
-	case <-failure:
-		t.Fatal("expected a success")
-	}
-}
-
 func TestParserRunClose(t *testing.T) {
-	stream, done := make(chan *token), make(chan bool)
-	parser, success, failure := newParser(stream, done)
+	stream, abort := make(chan *token), make(chan bool)
+	parser, success, failure := newParser(stream, abort)
 
 	go parser.run()
 	close(stream)

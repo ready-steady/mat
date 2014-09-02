@@ -78,7 +78,7 @@ func TestParseFailure(t *testing.T) {
 	assertFailure(err, t)
 }
 
-func BenchmarkParse(b *testing.B) {
+func BenchmarkParseSimple(b *testing.B) {
 	data := readFixture("simple")
 
 	for i := 0; i < b.N; i++ {
