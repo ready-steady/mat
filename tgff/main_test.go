@@ -69,7 +69,7 @@ func TestParseSuccess(t *testing.T) {
 		assert.Equal(r.Tables[i].Columns[1].Name, "exec_time", t)
 	}
 
-	assert.DeepEqual(r.Tables[2].Columns[1].Data, fixtureSimpleTable2Column1, t)
+	assert.DeepEqual(r.Tables[1].Columns[1].Data, fixtureSimpleTable1Column1, t)
 }
 
 func TestParseFailure(t *testing.T) {
@@ -121,7 +121,7 @@ func openFixture(name string) *os.File {
 	return file
 }
 
-var fixtureSimpleTable2Column1 = []float64{
+var fixtureSimpleTable1Column1 = []float64{
 	48.5893,
 	33.4384,
 	34.2468,
