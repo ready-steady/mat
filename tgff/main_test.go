@@ -69,7 +69,7 @@ func TestParseSuccess(t *testing.T) {
 		assert.Equal(r.Tables[i].Columns[1].Name, "exec_time", t)
 	}
 
-	assert.DeepEqual(r.Tables[1].Columns[1].Data, fixtureSimpleTable1Column1, t)
+	assert.Equal(r.Tables[1].Columns[1].Data, fixtureSimpleTable1Column1, t)
 }
 
 func TestParseFailure(t *testing.T) {
