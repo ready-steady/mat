@@ -43,7 +43,7 @@ func TestParseSuccess_simple(t *testing.T) {
 
 	for i, graph := range graphs {
 		assert.Equal(r.Graphs[i].Name, "TASK_GRAPH", t)
-		assert.Equal(r.Graphs[i].Number, uint16(i), t)
+		assert.Equal(r.Graphs[i].ID, uint16(i), t)
 		assert.Equal(r.Graphs[i].Period, graph.period, t)
 
 		assert.Equal(len(r.Graphs[i].Tasks), graph.tasks, t)
@@ -61,7 +61,7 @@ func TestParseSuccess_simple(t *testing.T) {
 
 	for i, table := range tables {
 		assert.Equal(r.Tables[i].Name, "COMMUN", t)
-		assert.Equal(r.Tables[i].Number, uint16(i), t)
+		assert.Equal(r.Tables[i].ID, uint16(i), t)
 		assert.Equal(r.Tables[i].Attributes["price"], table.price, t)
 
 		assert.Equal(len(r.Tables[i].Columns), 2, t)

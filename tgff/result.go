@@ -16,7 +16,7 @@ type Result struct {
 // Graph represents a graph in a TGFF file.
 type Graph struct {
 	Name      string
-	Number    uint16
+	ID        uint16
 	Period    uint16
 	Tasks     []Task
 	Arcs      []Arc
@@ -47,7 +47,7 @@ type Deadline struct {
 // Table represents a table in a TGFF file.
 type Table struct {
 	Name       string
-	Number     uint16
+	ID         uint16
 	Attributes map[string]float64
 	Columns    []Column
 }
@@ -58,21 +58,21 @@ type Column struct {
 	Data []float64
 }
 
-func (r *Result) addGraph(name string, number uint16) *Graph {
+func (r *Result) addGraph(name string, id uint16) *Graph {
 	r.Graphs = append(r.Graphs, Graph{
-		Name:   name,
-		Number: number,
-		Tasks:  make([]Task, 0, taskBufferCap),
-		Arcs:   make([]Arc, 0, arcBufferCap),
+		Name:  name,
+		ID:    id,
+		Tasks: make([]Task, 0, taskBufferCap),
+		Arcs:  make([]Arc, 0, arcBufferCap),
 	})
 
 	return &r.Graphs[len(r.Graphs)-1]
 }
 
-func (r *Result) addTable(name string, number uint16) *Table {
+func (r *Result) addTable(name string, id uint16) *Table {
 	r.Tables = append(r.Tables, Table{
-		Name:   name,
-		Number: number,
+		Name: name,
+		ID:   id,
 	})
 
 	return &r.Tables[len(r.Tables)-1]
