@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-type tokenKind uint
+type tokenKind uint8
 
 type token struct {
 	kind  tokenKind
@@ -50,9 +50,9 @@ func (k tokenKind) String() string {
 	}
 }
 
-func (t token) Uint32() uint32 {
-	value, _ := strconv.ParseUint(t.value, 10, 32)
-	return uint32(value)
+func (t token) Uint16() uint16 {
+	value, _ := strconv.ParseUint(t.value, 10, 16)
+	return uint16(value)
 }
 
 func (t token) Float64() float64 {

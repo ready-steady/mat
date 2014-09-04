@@ -6,7 +6,7 @@ const (
 )
 
 type Result struct {
-	Period uint32
+	Period uint16
 
 	Graphs []Graph
 	Tables []Table
@@ -14,8 +14,8 @@ type Result struct {
 
 type Graph struct {
 	Name      string
-	Number    uint32
-	Period    uint32
+	Number    uint16
+	Period    uint16
 	Tasks     []Task
 	Arcs      []Arc
 	Deadlines []Deadline
@@ -23,25 +23,25 @@ type Graph struct {
 
 type Task struct {
 	Name string
-	Type uint32
+	Type uint16
 }
 
 type Arc struct {
 	Name string
 	From string
 	To   string
-	Type uint32
+	Type uint16
 }
 
 type Deadline struct {
 	Name string
 	On   string
-	At   uint32
+	At   uint16
 }
 
 type Table struct {
 	Name       string
-	Number     uint32
+	Number     uint16
 	Attributes map[string]float64
 	Columns    []Column
 }
@@ -51,7 +51,7 @@ type Column struct {
 	Data []float64
 }
 
-func (r *Result) addGraph(name string, number uint32) *Graph {
+func (r *Result) addGraph(name string, number uint16) *Graph {
 	r.Graphs = append(r.Graphs, Graph{
 		Name:   name,
 		Number: number,
@@ -62,7 +62,7 @@ func (r *Result) addGraph(name string, number uint32) *Graph {
 	return &r.Graphs[len(r.Graphs)-1]
 }
 
-func (r *Result) addTable(name string, number uint32) *Table {
+func (r *Result) addTable(name string, number uint16) *Table {
 	r.Tables = append(r.Tables, Table{
 		Name:   name,
 		Number: number,

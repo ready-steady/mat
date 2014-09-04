@@ -24,12 +24,12 @@ func TestParseSuccess(t *testing.T) {
 
 	assert.Success(err, t)
 
-	assert.Equal(r.Period, uint32(1180), t)
+	assert.Equal(r.Period, uint16(1180), t)
 	assert.Equal(len(r.Graphs), 5, t)
 	assert.Equal(len(r.Tables), 3, t)
 
 	graphs := []struct {
-		period    uint32
+		period    uint16
 		tasks     int
 		arcs      int
 		deadlines int
@@ -43,7 +43,7 @@ func TestParseSuccess(t *testing.T) {
 
 	for i, graph := range graphs {
 		assert.Equal(r.Graphs[i].Name, "TASK_GRAPH", t)
-		assert.Equal(r.Graphs[i].Number, uint32(i), t)
+		assert.Equal(r.Graphs[i].Number, uint16(i), t)
 		assert.Equal(r.Graphs[i].Period, graph.period, t)
 
 		assert.Equal(len(r.Graphs[i].Tasks), graph.tasks, t)
@@ -61,7 +61,7 @@ func TestParseSuccess(t *testing.T) {
 
 	for i, table := range tables {
 		assert.Equal(r.Tables[i].Name, "COMMUN", t)
-		assert.Equal(r.Tables[i].Number, uint32(i), t)
+		assert.Equal(r.Tables[i].Number, uint16(i), t)
 		assert.Equal(r.Tables[i].Attributes["price"], table.price, t)
 
 		assert.Equal(len(r.Tables[i].Columns), 2, t)
