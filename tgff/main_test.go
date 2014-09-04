@@ -16,7 +16,7 @@ const (
 	fixturePath = "fixtures"
 )
 
-func TestParseSuccess(t *testing.T) {
+func TestParseSuccess_simple(t *testing.T) {
 	file := openFixture("simple")
 	defer file.Close()
 
@@ -72,6 +72,28 @@ func TestParseSuccess(t *testing.T) {
 	assert.Equal(r.Tables[1].Columns[1].Data, fixtureSimpleTable1Column1, t)
 }
 
+func TestParseSuccess_032_640(t *testing.T) {
+	file := openFixture("032_640")
+	defer file.Close()
+
+	r, err := Parse(file)
+
+	assert.Success(err, t)
+
+	assert.Equal(len(r.Graphs), 1, t)
+	assert.Equal(len(r.Graphs[0].Tasks), 640, t)
+	assert.Equal(len(r.Graphs[0].Arcs), 848, t)
+	assert.Equal(len(r.Graphs[0].Deadlines), 259, t)
+
+	assert.Equal(len(r.Tables), 32, t)
+	for _, table := range r.Tables {
+		assert.Equal(len(table.Columns), 4, t)
+		for _, column := range table.Columns {
+			assert.Equal(len(column.Data), 320, t)
+		}
+	}
+}
+
 func TestParseFailure(t *testing.T) {
 	reader := strings.NewReader("  @ garbage")
 
@@ -80,7 +102,7 @@ func TestParseFailure(t *testing.T) {
 	assert.Failure(err, t)
 }
 
-func BenchmarkParseSimple(b *testing.B) {
+func BenchmarkParse_simple(b *testing.B) {
 	data := readFixture("simple")
 
 	for i := 0; i < b.N; i++ {
@@ -88,8 +110,8 @@ func BenchmarkParseSimple(b *testing.B) {
 	}
 }
 
-func BenchmarkParseComplex(b *testing.B) {
-	data := readFixture("complex")
+func BenchmarkParse_032_640(b *testing.B) {
+	data := readFixture("032_640")
 
 	for i := 0; i < b.N; i++ {
 		Parse(bytes.NewReader(data))
