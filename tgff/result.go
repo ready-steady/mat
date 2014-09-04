@@ -5,27 +5,31 @@ const (
 	arcBufferCap  = 50
 )
 
+// Result is a representation of a TGFF file.
 type Result struct {
-	Period uint16
+	Period uint16 // Hyperperiod
 
 	Graphs []Graph
 	Tables []Table
 }
 
+// Graph represents a graph in a TGFF file.
 type Graph struct {
 	Name      string
 	Number    uint16
 	Period    uint16
 	Tasks     []Task
 	Arcs      []Arc
-	Deadlines []Deadline
+	Deadlines []Deadline // Hard deadlines
 }
 
+// Task is a TASK entry of a graph.
 type Task struct {
 	Name string
 	Type uint16
 }
 
+// Arc is a ARC entry of a graph.
 type Arc struct {
 	Name string
 	From string
@@ -33,12 +37,14 @@ type Arc struct {
 	Type uint16
 }
 
+// Deadline is a HARD_DEADLINE entry of a graph.
 type Deadline struct {
 	Name string
 	On   string
 	At   uint16
 }
 
+// Table represents a table in a TGFF file.
 type Table struct {
 	Name       string
 	Number     uint16
@@ -46,6 +52,7 @@ type Table struct {
 	Columns    []Column
 }
 
+// Column is a column of a table.
 type Column struct {
 	Name string
 	Data []float64
