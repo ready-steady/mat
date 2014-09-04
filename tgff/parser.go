@@ -83,7 +83,7 @@ func (p *parser) receiveWhile(accept func(*token) bool) ([]*token, error) {
 			return
 		}
 
-		newTokens := make([]*token, 0, 2*size)
+		newTokens := make([]*token, size, 2*size)
 		copy(newTokens, tokens)
 		tokens = newTokens
 	}

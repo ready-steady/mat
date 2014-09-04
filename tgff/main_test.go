@@ -87,6 +87,7 @@ func TestParseSuccess_032_640(t *testing.T) {
 
 	assert.Equal(len(r.Tables), 32, t)
 	for _, table := range r.Tables {
+		assert.Equal(len(table.Attributes), 1, t)
 		assert.Equal(len(table.Columns), 4, t)
 		for _, column := range table.Columns {
 			assert.Equal(len(column.Data), 320, t)

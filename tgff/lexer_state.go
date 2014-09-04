@@ -21,7 +21,7 @@ const (
 func lexErrorState(err error) lexState {
 	return func(l *lexer) lexState {
 		l.set(err.Error())
-		_ = l.send(errorToken)
+		l.send(errorToken)
 
 		return nil
 	}
@@ -58,7 +58,7 @@ func lexUncertainState(l *lexer) lexState {
 	case isNamely(c):
 		return lexNameState
 	default:
-		return lexErrorState(errors.New("unknown token starting"))
+		return lexErrorState(errors.New("unknown token"))
 	}
 }
 
