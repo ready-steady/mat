@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goesd/support/assert"
+	"github.com/go-eslab/support/assert"
 )
 
 const (

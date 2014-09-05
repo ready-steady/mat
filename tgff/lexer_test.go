@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goesd/support/assert"
+	"github.com/go-eslab/support/assert"
 )
 
 func assertLexerAt(lexer *lexer, char byte, t *testing.T) {
