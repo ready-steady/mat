@@ -1,8 +1,7 @@
 # MATLAB MAT-File
 
-An adapter for the MATLAB MAT-file API. Refer to
-[MATLAB External Interfaces](http://www.mathworks.com/help/pdf_doc/matlab/apiext.pdf)
-for further details.
+The package provides an adapter to the
+[MATLAB MAT-file API](http://www.mathworks.com/help/pdf_doc/matlab/apiext.pdf).
 
 ## Installation
 
