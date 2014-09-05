@@ -8,7 +8,7 @@ The package provides an adapter to the
 Run:
 
 ```bash
-$ go get github.com/gomath/format/mat
+$ go get github.com/go-math/format/mat
 ```
 
 The above command will fail. However, it will properly clone this repository
@@ -16,7 +16,7 @@ into [`$GOPATH`](https://golang.org/doc/code.html#GOPATH). Go to that
 directory:
 
 ```bash
-$ cd $GOPATH/src/github.com/gomath/format/mat
+$ cd $GOPATH/src/github.com/go-math/format/mat
 ```
 
 Set the `MATLAB_ROOT` and `MATLAB_ARCH` environment variables according to your
