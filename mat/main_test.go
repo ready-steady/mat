@@ -4,19 +4,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"reflect"
 	"testing"
+
+	"github.com/go-math/support/assert"
 )
 
 const (
 	fixturePath = "fixtures"
 )
-
-func assertEqual(expected, actual interface{}, t *testing.T) {
-	if !reflect.DeepEqual(expected, actual) {
-		t.Fatalf("got '%v' instead of '%v'", actual, expected)
-	}
-}
 
 func createTempFile() string {
 	file, _ := ioutil.TempFile("", "fixture")
@@ -30,8 +25,7 @@ func TestOpen(t *testing.T) {
 
 	file, err := Open(path, "r")
 
-	assertEqual(nil, err, t)
-	assertEqual(path, file.path, t)
+	assert.Success(err, t)
 
 	file.Close()
 }
@@ -40,13 +34,31 @@ func TestPutMatrix(t *testing.T) {
 	path := createTempFile()
 	defer os.Remove(path)
 
+	file, _ := Open(path, "w7.3")
+	defer file.Close()
+
 	name, rows, cols := "a", uint32(2), uint32(3)
-	data := []float64{1, 4, 2, 5, 3, 6}
+	data := []float64{1, 2, 3, 4, 5, 6}
+
+	assert.Success(file.PutMatrix(name, data, rows, cols), t)
+}
+
+func TestPutStruct(t *testing.T) {
+	path := createTempFile()
+	defer os.Remove(path)
 
 	file, _ := Open(path, "w7.3")
-	err := file.PutMatrix(name, rows, cols, data)
+	defer file.Close()
 
-	assertEqual(nil, err, t)
+	name, value := "a", struct{
+		One   []float64
+		two   []float64
+		Three []float64
+	}{
+		[]float64{1, 0, 1, 0, 1, 0},
+		[]float64{2, 0, 2, 0, 2, 0},
+		[]float64{3, 0, 3, 0, 3, 0},
+	}
 
-	file.Close()
+	assert.Success(file.PutStruct(name, value), t)
 }
