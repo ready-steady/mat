@@ -72,23 +72,36 @@ func (f *File) createArray(data reflect.Value) (*C.mxArray, error) {
 	case reflect.Struct:
 		return f.createStruct(data)
 	default:
-		return nil, errors.New("unsupported data type")
+		return f.createScalar(data)
 	}
 }
 
-func (f *File) createMatrix(data reflect.Value, rows, cols uint32) (*C.mxArray, error) {
-	if data.Kind() != reflect.Slice {
-		return nil, errors.New("expected a slice")
+func (f *File) createScalar(data reflect.Value) (*C.mxArray, error) {
+	classid, size, write := mapToMATLAB(data.Kind())
+	if size == 0 {
+		return nil, errors.New("unsupported scalar type")
 	}
 
-	var classid C.mxClassID
-	var size int
+	array := C.mxCreateNumericMatrix(1, 1, classid, C.mxREAL)
+	if array == nil {
+		return nil, errors.New("cannot create a scalar")
+	}
 
-	switch data.Type().Elem().Kind() {
-	case reflect.Float64:
-		classid, size = C.mxDOUBLE_CLASS, 8
-	default:
-		return nil, errors.New("unsupported slice type")
+	parray := unsafe.Pointer(C.mxGetPr(array))
+	if parray == nil {
+		C.mxDestroyArray(array)
+		return nil, errors.New("cannot create a scalar")
+	}
+
+	write(parray, data)
+
+	return array, nil
+}
+
+func (f *File) createMatrix(data reflect.Value, rows, cols uint32) (*C.mxArray, error) {
+	classid, size, _ := mapToMATLAB(data.Type().Elem().Kind())
+	if size == 0 {
+		errors.New("unsupported slice type")
 	}
 
 	array := C.mxCreateNumericMatrix(C.size_t(rows), C.size_t(cols), classid, C.mxREAL)
@@ -102,16 +115,12 @@ func (f *File) createMatrix(data reflect.Value, rows, cols uint32) (*C.mxArray, 
 		return nil, errors.New("cannot create a matrix")
 	}
 
-	C.memcpy(parray, unsafe.Pointer(data.Pointer()), C.size_t(size*data.Len()))
+	C.memcpy(parray, unsafe.Pointer(data.Pointer()), C.size_t(data.Len())*size)
 
 	return array, nil
 }
 
 func (f *File) createStruct(data reflect.Value) (*C.mxArray, error) {
-	if data.Kind() != reflect.Struct {
-		return nil, errors.New("expected a struct")
-	}
-
 	typo := data.Type()
 	count := typo.NumField()
 	names := make([]*C.char, 0, count)
@@ -166,4 +175,51 @@ func (f *File) putVariable(name string, array *C.mxArray) error {
 	}
 
 	return nil
+}
+
+func mapToMATLAB(kind reflect.Kind) (C.mxClassID, C.size_t, func(unsafe.Pointer, reflect.Value)) {
+	switch kind {
+	case reflect.Int8:
+		return C.mxINT8_CLASS, 1, func(p unsafe.Pointer, v reflect.Value) {
+			*((* int8)(p)) = int8(v.Int())
+		}
+	case reflect.Uint8:
+		return C.mxUINT8_CLASS, 1, func(p unsafe.Pointer, v reflect.Value) {
+			*((* uint8)(p)) = uint8(v.Uint())
+		}
+	case reflect.Int16:
+		return C.mxINT16_CLASS, 2, func(p unsafe.Pointer, v reflect.Value) {
+			*((* int16)(p)) = int16(v.Int())
+		}
+	case reflect.Uint16:
+		return C.mxUINT16_CLASS, 2, func(p unsafe.Pointer, v reflect.Value) {
+			*((* uint16)(p)) = uint16(v.Uint())
+		}
+	case reflect.Int32:
+		return C.mxINT32_CLASS, 4, func(p unsafe.Pointer, v reflect.Value) {
+			*((* int32)(p)) = int32(v.Int())
+		}
+	case reflect.Uint32:
+		return C.mxUINT32_CLASS, 4, func(p unsafe.Pointer, v reflect.Value) {
+			*((* uint32)(p)) = uint32(v.Uint())
+		}
+	case reflect.Int64:
+		return C.mxINT64_CLASS, 8, func(p unsafe.Pointer, v reflect.Value) {
+			*((* int64)(p)) = int64(v.Int())
+		}
+	case reflect.Uint64:
+		return C.mxUINT64_CLASS, 8, func(p unsafe.Pointer, v reflect.Value) {
+			*((* uint64)(p)) = uint64(v.Uint())
+		}
+	case reflect.Float32:
+		return C.mxSINGLE_CLASS, 4, func(p unsafe.Pointer, v reflect.Value) {
+			*((* float32)(p)) = float32(v.Float())
+		}
+	case reflect.Float64:
+		return C.mxDOUBLE_CLASS, 8, func(p unsafe.Pointer, v reflect.Value) {
+			*((* float64)(p)) = float64(v.Float())
+		}
+	default:
+		return 0, 0, nil
+	}
 }
