@@ -30,6 +30,26 @@ func TestOpen(t *testing.T) {
 	file.Close()
 }
 
+func TestPut(t *testing.T) {
+	path := createTempFile()
+	defer os.Remove(path)
+
+	file, _ := Open(path, "w7.3")
+	defer file.Close()
+
+	name, value := "a", struct{
+		A []float64
+		b []float64
+		C []float64
+	}{
+		[]float64{1, 0, 1, 0, 1, 0},
+		[]float64{2, 0, 2, 0, 2, 0},
+		[]float64{3, 0, 3, 0, 3, 0},
+	}
+
+	assert.Success(file.Put(name, value), t)
+}
+
 func TestPutMatrix(t *testing.T) {
 	path := createTempFile()
 	defer os.Remove(path)
@@ -41,24 +61,4 @@ func TestPutMatrix(t *testing.T) {
 	data := []float64{1, 2, 3, 4, 5, 6}
 
 	assert.Success(file.PutMatrix(name, data, rows, cols), t)
-}
-
-func TestPutStruct(t *testing.T) {
-	path := createTempFile()
-	defer os.Remove(path)
-
-	file, _ := Open(path, "w7.3")
-	defer file.Close()
-
-	name, value := "a", struct{
-		One   []float64
-		two   []float64
-		Three []float64
-	}{
-		[]float64{1, 0, 1, 0, 1, 0},
-		[]float64{2, 0, 2, 0, 2, 0},
-		[]float64{3, 0, 3, 0, 3, 0},
-	}
-
-	assert.Success(file.PutStruct(name, value), t)
 }
