@@ -69,7 +69,7 @@ func TestPut(t *testing.T) {
 		float64(10),
 		[]float64{10, 10, 10},
 
-		struct{
+		struct {
 			A []float64
 			B []float64
 		}{
@@ -79,7 +79,7 @@ func TestPut(t *testing.T) {
 	}
 
 	for i, o := range objects {
-		assert.Success(file.Put(fmt.Sprintf("%c", 'A' + i), o), t)
+		assert.Success(file.Put(fmt.Sprintf("%c", 'A'+i), o), t)
 	}
 }
 

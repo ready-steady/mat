@@ -162,7 +162,7 @@ func (f *File) createStruct(data reflect.Value) (*C.mxArray, error) {
 	}
 
 	for i := 0; i < count; i++ {
-        C.mxSetFieldByNumber(array, 0, C.int(i), arrays[i])
+		C.mxSetFieldByNumber(array, 0, C.int(i), arrays[i])
 	}
 
 	return array, nil
@@ -183,43 +183,43 @@ func mapToMATLAB(kind reflect.Kind) (C.mxClassID, C.size_t, func(unsafe.Pointer,
 	switch kind {
 	case reflect.Int8:
 		return C.mxINT8_CLASS, 1, func(p unsafe.Pointer, v reflect.Value) {
-			*((* int8)(p)) = int8(v.Int())
+			*((*int8)(p)) = int8(v.Int())
 		}
 	case reflect.Uint8:
 		return C.mxUINT8_CLASS, 1, func(p unsafe.Pointer, v reflect.Value) {
-			*((* uint8)(p)) = uint8(v.Uint())
+			*((*uint8)(p)) = uint8(v.Uint())
 		}
 	case reflect.Int16:
 		return C.mxINT16_CLASS, 2, func(p unsafe.Pointer, v reflect.Value) {
-			*((* int16)(p)) = int16(v.Int())
+			*((*int16)(p)) = int16(v.Int())
 		}
 	case reflect.Uint16:
 		return C.mxUINT16_CLASS, 2, func(p unsafe.Pointer, v reflect.Value) {
-			*((* uint16)(p)) = uint16(v.Uint())
+			*((*uint16)(p)) = uint16(v.Uint())
 		}
 	case reflect.Int32:
 		return C.mxINT32_CLASS, 4, func(p unsafe.Pointer, v reflect.Value) {
-			*((* int32)(p)) = int32(v.Int())
+			*((*int32)(p)) = int32(v.Int())
 		}
 	case reflect.Uint32:
 		return C.mxUINT32_CLASS, 4, func(p unsafe.Pointer, v reflect.Value) {
-			*((* uint32)(p)) = uint32(v.Uint())
+			*((*uint32)(p)) = uint32(v.Uint())
 		}
 	case reflect.Int64:
 		return C.mxINT64_CLASS, 8, func(p unsafe.Pointer, v reflect.Value) {
-			*((* int64)(p)) = int64(v.Int())
+			*((*int64)(p)) = int64(v.Int())
 		}
 	case reflect.Uint64:
 		return C.mxUINT64_CLASS, 8, func(p unsafe.Pointer, v reflect.Value) {
-			*((* uint64)(p)) = uint64(v.Uint())
+			*((*uint64)(p)) = uint64(v.Uint())
 		}
 	case reflect.Float32:
 		return C.mxSINGLE_CLASS, 4, func(p unsafe.Pointer, v reflect.Value) {
-			*((* float32)(p)) = float32(v.Float())
+			*((*float32)(p)) = float32(v.Float())
 		}
 	case reflect.Float64:
 		return C.mxDOUBLE_CLASS, 8, func(p unsafe.Pointer, v reflect.Value) {
-			*((* float64)(p)) = float64(v.Float())
+			*((*float64)(p)) = float64(v.Float())
 		}
 	default:
 		return 0, 0, nil
