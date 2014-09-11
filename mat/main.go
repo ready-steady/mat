@@ -136,9 +136,6 @@ func (f *File) createStruct(data reflect.Value) (*C.mxArray, error) {
 
 	for i := 0; i < count; i++ {
 		field := typo.Field(i)
-		if field.PkgPath != "" { // not exported
-			continue
-		}
 
 		name := C.CString(field.Name)
 		defer C.free(unsafe.Pointer(name))
