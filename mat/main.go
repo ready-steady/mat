@@ -153,7 +153,12 @@ func (f *File) createStruct(data reflect.Value) (*C.mxArray, error) {
 	}
 	count = len(names)
 
-	array := C.mxCreateStructMatrix(1, 1, C.int(count), (**C.char)(&names[0]))
+	var pnames **C.char
+	if count > 0 {
+		pnames = (**C.char)(&names[0])
+	}
+
+	array := C.mxCreateStructMatrix(1, 1, C.int(count), pnames)
 	if array == nil {
 		cleanup()
 		return nil, errors.New("cannot create a struct")
