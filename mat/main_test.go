@@ -89,6 +89,22 @@ func TestPutMatrix(t *testing.T) {
 	assert.Success(file.PutMatrix(name, data, rows, cols), t)
 }
 
+func TestGet(t *testing.T) {
+	path := findFixture("data.mat")
+
+	file, _ := Open(path, "r")
+	defer file.Close()
+
+	var A []float64
+	assert.Success(file.Get("A", &A), t)
+
+	var S struct{
+		A []uint8
+		B []float64
+	}
+	assert.Success(file.Get("S", &S), t)
+}
+
 func findFixture(name string) string {
 	return path.Join(fixturePath, name)
 }

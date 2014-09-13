@@ -189,6 +189,6 @@ func mapToMATLAB(kind reflect.Kind) (C.mxClassID, C.size_t, func(unsafe.Pointer,
 			*((*float64)(p)) = float64(v.Float())
 		}
 	default:
-		return 0, 0, nil
+		return C.mxUNKNOWN_CLASS, 0, nil
 	}
 }
