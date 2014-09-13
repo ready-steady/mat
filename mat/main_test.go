@@ -14,15 +14,8 @@ const (
 	fixturePath = "fixtures"
 )
 
-func createTempFile() string {
-	file, _ := ioutil.TempFile("", "fixture")
-	file.Close()
-
-	return file.Name()
-}
-
 func TestOpen(t *testing.T) {
-	path := path.Join(fixturePath, "data.mat")
+	path := findFixture("data.mat")
 
 	file, err := Open(path, "r")
 
@@ -94,4 +87,15 @@ func TestPutMatrix(t *testing.T) {
 	data := []float64{1, 2, 3, 4, 5, 6}
 
 	assert.Success(file.PutMatrix(name, data, rows, cols), t)
+}
+
+func findFixture(name string) string {
+	return path.Join(fixturePath, name)
+}
+
+func createTempFile() string {
+	file, _ := ioutil.TempFile("", "fixture")
+	file.Close()
+
+	return file.Name()
 }
