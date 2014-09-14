@@ -1,4 +1,4 @@
-# MATLAB MAT-File
+# MATLAB MAT
 
 The package provides an adapter to the
 [MATLAB MAT-file API](http://www.mathworks.com/help/pdf_doc/matlab/apiext.pdf).
