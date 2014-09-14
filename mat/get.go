@@ -128,7 +128,17 @@ func readScalar(iv reflect.Value, p unsafe.Pointer) error {
 func readSlice(iv reflect.Value, p unsafe.Pointer, c C.size_t, s C.size_t) error {
 	w := reflect.MakeSlice(iv.Type(), int(c), int(c))
 	C.memcpy(unsafe.Pointer(w.Pointer()), p, c*s)
-	iv.Set(w)
+
+	iw := reflect.Indirect(reflect.New(iv.Type()))
+	iw.Set(w)
+
+	// FIXME: Bad, bad, bad! But how else to fill in unexported fields?
+	src := (*reflect.SliceHeader)(unsafe.Pointer(iw.UnsafeAddr()))
+	dst := (*reflect.SliceHeader)(unsafe.Pointer(iv.UnsafeAddr()))
+
+	dst.Data, src.Data = src.Data, dst.Data
+	dst.Len, src.Len = src.Len, dst.Len
+	dst.Cap, src.Cap = src.Cap, dst.Cap
 
 	return nil
 }
