@@ -40,39 +40,25 @@ func (f *File) readArray(array *C.mxArray, value reflect.Value) error {
 }
 
 func (f *File) readMatrix(array *C.mxArray, ivalue reflect.Value) error {
-	var classid C.mxClassID
-	var read func(unsafe.Pointer, C.size_t)
-	var scalar bool
-
-	if ivalue.Kind() == reflect.Slice {
-		classid, read = readSlice(ivalue)
-		scalar = false
-	} else {
-		classid, read = readScalar(ivalue)
-		scalar = true
-	}
-
-	if classid == C.mxUNKNOWN_CLASS {
-		return errors.New("unsupported type")
-	}
-
-	if classid != C.mxGetClassID(array) {
-		return errors.New("data type mismatch")
-	}
-
-	count := C.mxGetM(array) * C.mxGetN(array)
-	if scalar && count != 1 {
-		return errors.New("data size mismatch")
-	}
-
 	parray := unsafe.Pointer(C.mxGetPr(array))
 	if parray == nil {
 		return errors.New("cannot read the variable")
 	}
 
-	read(parray, count)
+	count := C.mxGetM(array) * C.mxGetN(array)
+	size, ok := classSizeMapping[C.mxGetClassID(array)]
+	if !ok {
+		return errors.New("unsupported data type")
+	}
 
-	return nil
+	if ivalue.Kind() == reflect.Slice {
+		return readSlice(ivalue, parray, count, size)
+	} else {
+		if count != 1 {
+			return errors.New("data size mismatch")
+		}
+		return readScalar(ivalue, parray)
+	}
 }
 
 func (f *File) readStruct(array *C.mxArray, ivalue reflect.Value) error {
@@ -110,102 +96,39 @@ func (f *File) readStruct(array *C.mxArray, ivalue reflect.Value) error {
 	return nil
 }
 
-func readScalar(iv reflect.Value) (C.mxClassID, func(unsafe.Pointer, C.size_t)) {
+func readScalar(iv reflect.Value, p unsafe.Pointer) error {
 	switch iv.Kind() {
 	case reflect.Int8:
-		return C.mxINT8_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetInt(int64(*(*int8)(p)))
-		}
+		*(*int8)(unsafe.Pointer(iv.UnsafeAddr())) = *(*int8)(p)
 	case reflect.Uint8:
-		return C.mxUINT8_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetUint(uint64(*(*uint8)(p)))
-		}
+		*(*uint8)(unsafe.Pointer(iv.UnsafeAddr())) = *(*uint8)(p)
 	case reflect.Int16:
-		return C.mxINT16_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetInt(int64(*(*int16)(p)))
-		}
+		*(*int16)(unsafe.Pointer(iv.UnsafeAddr())) = *(*int16)(p)
 	case reflect.Uint16:
-		return C.mxUINT16_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetUint(uint64(*(*uint16)(p)))
-		}
+		*(*uint16)(unsafe.Pointer(iv.UnsafeAddr())) = *(*uint16)(p)
 	case reflect.Int32:
-		return C.mxINT32_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetInt(int64(*(*int32)(p)))
-		}
+		*(*int32)(unsafe.Pointer(iv.UnsafeAddr())) = *(*int32)(p)
 	case reflect.Uint32:
-		return C.mxUINT32_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetUint(uint64(*(*uint32)(p)))
-		}
+		*(*uint32)(unsafe.Pointer(iv.UnsafeAddr())) = *(*uint32)(p)
 	case reflect.Int64:
-		return C.mxINT64_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetInt(int64(*(*int64)(p)))
-		}
+		*(*int64)(unsafe.Pointer(iv.UnsafeAddr())) = *(*int64)(p)
 	case reflect.Uint64:
-		return C.mxUINT64_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetUint(uint64(*(*uint64)(p)))
-		}
+		*(*uint64)(unsafe.Pointer(iv.UnsafeAddr())) = *(*uint64)(p)
 	case reflect.Float32:
-		return C.mxSINGLE_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetFloat(float64(*(*float32)(p)))
-		}
+		*(*float32)(unsafe.Pointer(iv.UnsafeAddr())) = *(*float32)(p)
 	case reflect.Float64:
-		return C.mxDOUBLE_CLASS, func(p unsafe.Pointer, _ C.size_t) {
-			iv.SetFloat(float64(*(*float64)(p)))
-		}
+		*(*float64)(unsafe.Pointer(iv.UnsafeAddr())) = *(*float64)(p)
 	default:
-		return C.mxUNKNOWN_CLASS, nil
+		return errors.New("unsupported data type")
 	}
+
+	return nil
 }
 
-func readSlice(iv reflect.Value) (C.mxClassID, func(unsafe.Pointer, C.size_t)) {
-	read := func(p unsafe.Pointer, c, s C.size_t) {
-		w := reflect.MakeSlice(iv.Type(), int(c), int(c))
-		C.memcpy(unsafe.Pointer(w.Pointer()), p, c*s)
-		iv.Set(w)
-	}
+func readSlice(iv reflect.Value, p unsafe.Pointer, c C.size_t, s C.size_t) error {
+	w := reflect.MakeSlice(iv.Type(), int(c), int(c))
+	C.memcpy(unsafe.Pointer(w.Pointer()), p, c*s)
+	iv.Set(w)
 
-	switch iv.Type().Elem().Kind() {
-	case reflect.Int8:
-		return C.mxINT8_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 1)
-		}
-	case reflect.Uint8:
-		return C.mxUINT8_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 1)
-		}
-	case reflect.Int16:
-		return C.mxINT16_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 2)
-		}
-	case reflect.Uint16:
-		return C.mxUINT16_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 2)
-		}
-	case reflect.Int32:
-		return C.mxINT32_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 4)
-		}
-	case reflect.Uint32:
-		return C.mxUINT32_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 4)
-		}
-	case reflect.Int64:
-		return C.mxINT64_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 8)
-		}
-	case reflect.Uint64:
-		return C.mxUINT64_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 8)
-		}
-	case reflect.Float32:
-		return C.mxSINGLE_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 4)
-		}
-	case reflect.Float64:
-		return C.mxDOUBLE_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			read(p, c, 8)
-		}
-	default:
-		return C.mxUNKNOWN_CLASS, nil
-	}
+	return nil
 }

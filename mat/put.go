@@ -49,17 +49,17 @@ func (f *File) writeArray(value reflect.Value) (*C.mxArray, error) {
 }
 
 func (f *File) writeMatrix(value reflect.Value, rows, cols uint32) (*C.mxArray, error) {
-	var classid C.mxClassID
-	var write func(unsafe.Pointer)
+	var kind reflect.Kind
 
 	if value.Kind() == reflect.Slice {
-		classid, write = writeSlice(value)
+		kind = value.Type().Elem().Kind()
 	} else {
-		classid, write = writeScalar(value)
+		kind = value.Kind()
 	}
 
-	if classid == C.mxUNKNOWN_CLASS {
-		errors.New("unsupported type")
+	classid, ok := kindClassMapping[kind]
+	if !ok {
+		return nil, errors.New("unsupported data type")
 	}
 
 	array := C.mxCreateNumericMatrix(C.size_t(rows), C.size_t(cols), classid, C.mxREAL)
@@ -73,7 +73,22 @@ func (f *File) writeMatrix(value reflect.Value, rows, cols uint32) (*C.mxArray, 
 		return nil, errors.New("cannot create a matrix")
 	}
 
-	write(parray)
+	size, ok := classSizeMapping[classid]
+	if !ok {
+		return nil, errors.New("unsupported data type")
+	}
+
+	if value.Kind() == reflect.Slice {
+		if err := writeSlice(value, parray, size); err != nil {
+			C.mxDestroyArray(array)
+			return nil, err
+		}
+	} else {
+		if err := writeScalar(value, parray); err != nil {
+			C.mxDestroyArray(array)
+			return nil, err
+		}
+	}
 
 	return array, nil
 }
@@ -126,85 +141,39 @@ func (f *File) writeStruct(value reflect.Value) (*C.mxArray, error) {
 	return array, nil
 }
 
-func writeScalar(v reflect.Value) (C.mxClassID, func(unsafe.Pointer)) {
+func writeScalar(v reflect.Value, p unsafe.Pointer) error {
 	switch v.Kind() {
 	case reflect.Int8:
-		return C.mxINT8_CLASS, func(p unsafe.Pointer) {
-			*((*int8)(p)) = int8(v.Int())
-		}
+		*((*int8)(p)) = int8(v.Int())
 	case reflect.Uint8:
-		return C.mxUINT8_CLASS, func(p unsafe.Pointer) {
-			*((*uint8)(p)) = uint8(v.Uint())
-		}
+		*((*uint8)(p)) = uint8(v.Uint())
 	case reflect.Int16:
-		return C.mxINT16_CLASS, func(p unsafe.Pointer) {
-			*((*int16)(p)) = int16(v.Int())
-		}
+		*((*int16)(p)) = int16(v.Int())
 	case reflect.Uint16:
-		return C.mxUINT16_CLASS, func(p unsafe.Pointer) {
-			*((*uint16)(p)) = uint16(v.Uint())
-		}
+		*((*uint16)(p)) = uint16(v.Uint())
 	case reflect.Int32:
-		return C.mxINT32_CLASS, func(p unsafe.Pointer) {
-			*((*int32)(p)) = int32(v.Int())
-		}
+		*((*int32)(p)) = int32(v.Int())
 	case reflect.Uint32:
-		return C.mxUINT32_CLASS, func(p unsafe.Pointer) {
-			*((*uint32)(p)) = uint32(v.Uint())
-		}
+		*((*uint32)(p)) = uint32(v.Uint())
 	case reflect.Int64:
-		return C.mxINT64_CLASS, func(p unsafe.Pointer) {
-			*((*int64)(p)) = int64(v.Int())
-		}
+		*((*int64)(p)) = int64(v.Int())
 	case reflect.Uint64:
-		return C.mxUINT64_CLASS, func(p unsafe.Pointer) {
-			*((*uint64)(p)) = uint64(v.Uint())
-		}
+		*((*uint64)(p)) = uint64(v.Uint())
 	case reflect.Float32:
-		return C.mxSINGLE_CLASS, func(p unsafe.Pointer) {
-			*((*float32)(p)) = float32(v.Float())
-		}
+		*((*float32)(p)) = float32(v.Float())
 	case reflect.Float64:
-		return C.mxDOUBLE_CLASS, func(p unsafe.Pointer) {
-			*((*float64)(p)) = float64(v.Float())
-		}
+		*((*float64)(p)) = float64(v.Float())
 	default:
-		return C.mxUNKNOWN_CLASS, nil
+		return errors.New("unsupported data type")
 	}
+
+	return nil
 }
 
-func writeSlice(v reflect.Value) (C.mxClassID, func(unsafe.Pointer)) {
-	var c C.mxClassID
-	var s C.size_t
+func writeSlice(v reflect.Value, p unsafe.Pointer, s C.size_t) error {
+	C.memcpy(p, unsafe.Pointer(v.Pointer()), C.size_t(v.Len())*s)
 
-	switch v.Type().Elem().Kind() {
-	case reflect.Int8:
-		c, s = C.mxINT8_CLASS, 1
-	case reflect.Uint8:
-		c, s = C.mxUINT8_CLASS, 1
-	case reflect.Int16:
-		c, s = C.mxINT16_CLASS, 2
-	case reflect.Uint16:
-		c, s = C.mxUINT16_CLASS, 2
-	case reflect.Int32:
-		c, s = C.mxINT32_CLASS, 4
-	case reflect.Uint32:
-		c, s = C.mxUINT32_CLASS, 4
-	case reflect.Int64:
-		c, s = C.mxINT64_CLASS, 8
-	case reflect.Uint64:
-		c, s = C.mxUINT64_CLASS, 8
-	case reflect.Float32:
-		c, s = C.mxSINGLE_CLASS, 4
-	case reflect.Float64:
-		c, s = C.mxDOUBLE_CLASS, 8
-	default:
-		return C.mxUNKNOWN_CLASS, nil
-	}
-
-	return c, func(p unsafe.Pointer) {
-		C.memcpy(p, unsafe.Pointer(v.Pointer()), C.size_t(v.Len())*s)
-	}
+	return nil
 }
 
 func (f *File) putVariable(name string, array *C.mxArray) error {
