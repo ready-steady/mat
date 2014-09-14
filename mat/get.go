@@ -20,20 +20,26 @@ func (f *File) Get(name string, object interface{}) error {
 	cname := C.CString(name)
 	defer C.free(unsafe.Pointer(cname))
 
-	return f.readArray(cname, value)
+	array := C.matGetVariable(f.mat, cname)
+	if array == nil {
+		return errors.New("cannot find the variable")
+	}
+	defer C.mxDestroyArray(array)
+
+	return f.readArray(array, value)
 }
 
-func (f *File) readArray(name *C.char, value reflect.Value) error {
+func (f *File) readArray(array *C.mxArray, value reflect.Value) error {
 	ivalue := reflect.Indirect(value)
 	switch ivalue.Kind() {
 	case reflect.Struct:
-		return f.readStruct(name, ivalue)
+		return f.readStruct(array, ivalue)
 	default:
-		return f.readMatrix(name, ivalue)
+		return f.readMatrix(array, ivalue)
 	}
 }
 
-func (f *File) readMatrix(name *C.char, ivalue reflect.Value) error {
+func (f *File) readMatrix(array *C.mxArray, ivalue reflect.Value) error {
 	var classid C.mxClassID
 	var read func(unsafe.Pointer, C.size_t)
 	var scalar bool
@@ -49,12 +55,6 @@ func (f *File) readMatrix(name *C.char, ivalue reflect.Value) error {
 	if classid == C.mxUNKNOWN_CLASS {
 		return errors.New("unsupported type")
 	}
-
-	array := C.matGetVariable(f.mat, name)
-	if array == nil {
-		return errors.New("cannot find the variable")
-	}
-	defer C.mxDestroyArray(array)
 
 	if classid != C.mxGetClassID(array) {
 		return errors.New("data type mismatch")
@@ -75,7 +75,38 @@ func (f *File) readMatrix(name *C.char, ivalue reflect.Value) error {
 	return nil
 }
 
-func (f *File) readStruct(name *C.char, ivalue reflect.Value) error {
+func (f *File) readStruct(array *C.mxArray, ivalue reflect.Value) error {
+	if C.mxSTRUCT_CLASS != C.mxGetClassID(array) {
+		return errors.New("data type mismatch")
+	}
+
+	if C.mxGetM(array) * C.mxGetN(array) != 1 {
+		return errors.New("data size mismatch")
+	}
+
+	typo := ivalue.Type()
+	count := typo.NumField()
+
+	if count != int(C.mxGetNumberOfFields(array)) {
+		return errors.New("data structure mismatch")
+	}
+
+	for i := 0; i < count; i++ {
+		field := typo.Field(i)
+
+		name := C.CString(field.Name)
+		defer C.free(unsafe.Pointer(name))
+
+		farray := C.mxGetField(array, 0, name)
+		if farray == nil {
+			return errors.New("data structure mismatch")
+		}
+
+		if err := f.readArray(farray, ivalue.Field(i)); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
