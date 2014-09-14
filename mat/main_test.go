@@ -10,16 +10,6 @@ import (
 	"github.com/go-math/support/fixture"
 )
 
-func TestOpen(t *testing.T) {
-	path := findFixture("data.mat")
-
-	file, err := Open(path, "r")
-
-	assert.Success(err, t)
-
-	file.Close()
-}
-
 func TestPut(t *testing.T) {
 	path := fixture.MakeTempFile()
 	defer os.Remove(path)
@@ -28,9 +18,7 @@ func TestPut(t *testing.T) {
 	defer file.Close()
 
 	for i, o := range fixtureObjects {
-		err := file.Put(fmt.Sprintf("%c", 'A'+i), o)
-
-		assert.Success(err, t)
+		assert.Success(file.Put(fmt.Sprintf("%c", 'A'+i), o), t)
 	}
 }
 
@@ -55,9 +43,7 @@ func TestGet(t *testing.T) {
 
 	for i, o := range fixtureObjects {
 		ptr := makeEmptyLike(o)
-		err := file.Get(fmt.Sprintf("%c", 'A'+i), ptr)
-
-		assert.Success(err, t)
+		assert.Success(file.Get(fmt.Sprintf("%c", 'A'+i), ptr), t)
 		assert.Equal(reflect.Indirect(reflect.ValueOf(ptr)).Interface(), o, t)
 	}
 }
