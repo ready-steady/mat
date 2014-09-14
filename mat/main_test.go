@@ -42,8 +42,9 @@ func TestGet(t *testing.T) {
 	defer file.Close()
 
 	for i, o := range fixtureObjects {
-		ptr := makeEmptyLike(o)
-		assert.Success(file.Get(fmt.Sprintf("%c", 'A'+i), ptr), t)
-		assert.Equal(reflect.Indirect(reflect.ValueOf(ptr)).Interface(), o, t)
+		v := reflect.New(reflect.TypeOf(o))
+		p := v.Interface()
+		assert.Success(file.Get(fmt.Sprintf("%c", 'A'+i), p), t)
+		assert.Equal(reflect.Indirect(v).Interface(), o, t)
 	}
 }
