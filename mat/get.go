@@ -75,8 +75,6 @@ func (f *File) copyArray(name *C.char, ivalue reflect.Value, kind reflect.Kind, 
 
 func mapFromMATLAB(kind reflect.Kind) (C.mxClassID, func(reflect.Value, unsafe.Pointer), func(reflect.Value, unsafe.Pointer, C.size_t)) {
 	switch kind {
-	case reflect.Struct:
-		return C.mxSTRUCT_CLASS, nil, nil
 	case reflect.Int8:
 		return C.mxINT8_CLASS,
 			func(iv reflect.Value, p unsafe.Pointer) {
@@ -197,6 +195,8 @@ func mapFromMATLAB(kind reflect.Kind) (C.mxClassID, func(reflect.Value, unsafe.P
 					C.memcpy(unsafe.Pointer(&w[0]), p, 8*c)
 				}
 			}
+	case reflect.Struct:
+		return C.mxSTRUCT_CLASS, nil, nil
 	default:
 		return C.mxUNKNOWN_CLASS, nil, nil
 	}

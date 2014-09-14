@@ -2,16 +2,12 @@ package mat
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path"
+	"reflect"
 	"testing"
 
 	"github.com/go-math/support/assert"
-)
-
-const (
-	fixturePath = "fixtures"
+	"github.com/go-math/support/fixture"
 )
 
 func TestOpen(t *testing.T) {
@@ -25,20 +21,21 @@ func TestOpen(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
-	path := createTempFile()
+	path := fixture.MakeTempFile()
 	defer os.Remove(path)
 
 	file, _ := Open(path, "w7.3")
 	defer file.Close()
 
-	for i, o := range objects {
-		name := fmt.Sprintf("%c", 'A'+i)
-		assert.Success(file.Put(name, o), t)
+	for i, o := range fixtureObjects {
+		err := file.Put(fmt.Sprintf("%c", 'A'+i), o)
+
+		assert.Success(err, t)
 	}
 }
 
 func TestPutMatrix(t *testing.T) {
-	path := createTempFile()
+	path := fixture.MakeTempFile()
 	defer os.Remove(path)
 
 	file, _ := Open(path, "w7.3")
@@ -56,100 +53,11 @@ func TestGet(t *testing.T) {
 	file, _ := Open(path, "r")
 	defer file.Close()
 
-	for i, o := range objects {
-		name := fmt.Sprintf("%c", 'A'+i)
-		switch o.(type) {
-		case int8:
-			var v int8
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		case uint8:
-			var v uint8
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		case int16:
-			var v int16
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		case uint16:
-			var v uint16
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		case int32:
-			var v int32
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		case uint32:
-			var v uint32
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		case int64:
-			var v int64
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		case uint64:
-			var v uint64
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		case float32:
-			var v float32
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		case float64:
-			var v float64
-			assert.Success(file.Get(name, &v), t)
-			assert.Equal(v, o, t)
-		}
+	for i, o := range fixtureObjects {
+		ptr := makeEmptyLike(o)
+		err := file.Get(fmt.Sprintf("%c", 'A'+i), ptr)
+
+		assert.Success(err, t)
+		assert.Equal(reflect.Indirect(reflect.ValueOf(ptr)).Interface(), o, t)
 	}
-}
-
-func findFixture(name string) string {
-	return path.Join(fixturePath, name)
-}
-
-func createTempFile() string {
-	file, _ := ioutil.TempFile("", "fixture")
-	file.Close()
-
-	return file.Name()
-}
-
-var objects = []interface{}{
-	int8(-1),
-	[]int8{-1, -1, -1},
-
-	uint8(2),
-	[]uint8{2, 2, 2},
-
-	int16(-3),
-	[]int16{-3, -3, -3},
-
-	uint16(4),
-	[]uint16{4, 4, 4},
-
-	int32(-5),
-	[]int32{-5, -5, -5},
-
-	uint32(6),
-	[]uint32{6, 6, 6},
-
-	int64(-7),
-	[]int64{-7, -7, -7},
-
-	uint64(8),
-	[]uint64{8, 8, 8},
-
-	float32(9),
-	[]float32{9, 9, 9},
-
-	float64(10),
-	[]float64{10, 10, 10},
-
-	struct {
-		A []float64
-		B []float64
-	}{
-		A: []float64{1, 2, 3},
-		B: []float64{4, 5, 6},
-	},
 }
