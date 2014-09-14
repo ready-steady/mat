@@ -158,62 +158,52 @@ func readScalar(iv reflect.Value) (C.mxClassID, func(unsafe.Pointer, C.size_t)) 
 }
 
 func readSlice(iv reflect.Value) (C.mxClassID, func(unsafe.Pointer, C.size_t)) {
-	read := func(w interface{}, p unsafe.Pointer, s C.size_t) {
-		iw := reflect.Indirect(reflect.ValueOf(w))
-		C.memcpy(unsafe.Pointer(iw.Pointer()), p, s)
-		iv.Set(iw)
+	read := func(p unsafe.Pointer, c, s C.size_t) {
+		w := reflect.MakeSlice(iv.Type(), int(c), int(c))
+		C.memcpy(unsafe.Pointer(w.Pointer()), p, c*s)
+		iv.Set(w)
 	}
 
 	switch iv.Type().Elem().Kind() {
 	case reflect.Int8:
 		return C.mxINT8_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]int8, c)
-			read(&w, p, 1*c)
+			read(p, c, 1)
 		}
 	case reflect.Uint8:
 		return C.mxUINT8_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]uint8, c)
-			read(&w, p, 1*c)
+			read(p, c, 1)
 		}
 	case reflect.Int16:
 		return C.mxINT16_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]int16, c)
-			read(&w, p, 2*c)
+			read(p, c, 2)
 		}
 	case reflect.Uint16:
 		return C.mxUINT16_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]uint16, c)
-			read(&w, p, 2*c)
+			read(p, c, 2)
 		}
 	case reflect.Int32:
 		return C.mxINT32_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]int32, c)
-			read(&w, p, 4*c)
+			read(p, c, 4)
 		}
 	case reflect.Uint32:
 		return C.mxUINT32_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]uint32, c)
-			read(&w, p, 4*c)
+			read(p, c, 4)
 		}
 	case reflect.Int64:
 		return C.mxINT64_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]int64, c)
-			read(&w, p, 8*c)
+			read(p, c, 8)
 		}
 	case reflect.Uint64:
 		return C.mxUINT64_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]uint64, c)
-			read(&w, p, 8*c)
+			read(p, c, 8)
 		}
 	case reflect.Float32:
 		return C.mxSINGLE_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]float32, c)
-			read(&w, p, 4*c)
+			read(p, c, 4)
 		}
 	case reflect.Float64:
 		return C.mxDOUBLE_CLASS, func(p unsafe.Pointer, c C.size_t) {
-			w := make([]float64, c)
-			read(&w, p, 8*c)
+			read(p, c, 8)
 		}
 	default:
 		return C.mxUNKNOWN_CLASS, nil
