@@ -126,17 +126,6 @@ func (f *File) writeStruct(value reflect.Value) (*C.mxArray, error) {
 	return array, nil
 }
 
-func (f *File) putVariable(name string, array *C.mxArray) error {
-	cname := C.CString(name)
-	defer C.free(unsafe.Pointer(cname))
-
-	if C.matPutVariable(f.mat, cname, array) != 0 {
-		return errors.New("cannot write a variable into the file")
-	}
-
-	return nil
-}
-
 func writeScalar(v reflect.Value) (C.mxClassID, func(unsafe.Pointer)) {
 	switch v.Kind() {
 	case reflect.Int8:
@@ -216,4 +205,15 @@ func writeSlice(v reflect.Value) (C.mxClassID, func(unsafe.Pointer)) {
 	return c, func(p unsafe.Pointer) {
 		C.memcpy(p, unsafe.Pointer(v.Pointer()), C.size_t(v.Len())*s)
 	}
+}
+
+func (f *File) putVariable(name string, array *C.mxArray) error {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+
+	if C.matPutVariable(f.mat, cname, array) != 0 {
+		return errors.New("cannot write a variable into the file")
+	}
+
+	return nil
 }

@@ -80,7 +80,7 @@ func (f *File) readStruct(array *C.mxArray, ivalue reflect.Value) error {
 		return errors.New("data type mismatch")
 	}
 
-	if C.mxGetM(array) * C.mxGetN(array) != 1 {
+	if C.mxGetM(array)*C.mxGetN(array) != 1 {
 		return errors.New("data size mismatch")
 	}
 
