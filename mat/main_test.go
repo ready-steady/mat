@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/go-math/support/assert"
-	"github.com/go-math/support/fixture"
+	"github.com/ready-steady/support/assert"
+	"github.com/ready-steady/support/fixture"
 )
 
 func TestPut(t *testing.T) {
