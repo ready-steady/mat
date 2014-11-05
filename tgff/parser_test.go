@@ -3,7 +3,7 @@ package tgff
 import (
 	"testing"
 
-	"github.com/go-math/support/assert"
+	"github.com/ready-steady/support/assert"
 )
 
 func TestParserReceiveOneSuccess(t *testing.T) {
