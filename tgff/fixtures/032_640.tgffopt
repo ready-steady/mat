@@ -1,0 +1,34 @@
+seed 4
+
+# Graph label
+tg_label GRAPH
+# Number of graphs
+tg_cnt 1
+# Number of tasks per graph +/- jitter
+task_cnt 640 0.001
+# Number of different tasks
+task_type_cnt 320
+# Average time per task including communication
+task_trans_time 1
+# Deadline jitter
+deadline_jitter 0
+# To have exactly the same task count each time
+period_mul 1
+# Numbers of in and out edges
+task_degree 3 4
+# All tasks are different?
+task_unique false
+# Write
+tg_write
+eps_write
+
+# Core label
+table_label CORE
+# Number of cores
+table_cnt 32
+# Attributes of the tasks mapped on a particular core
+type_attrib \
+  dynamic_power 10 9 0 0.01, \
+  execution_time 0.020 0.010 0 0.001
+# Write
+pe_write
