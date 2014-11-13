@@ -15,6 +15,6 @@ GO_FLAGS += CGO_LDFLAGS='$(CGO_LDFLAGS)'
 all: build
 
 build test install:
-	$(GO_FLAGS) go $@
+	@$(GO_FLAGS) go $@
 
 .PHONY: all build test install
