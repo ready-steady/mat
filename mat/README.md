@@ -1,7 +1,6 @@
 # MATLAB MAT
 
-The package provides an adapter to the
-[MATLAB MAT-file API](http://www.mathworks.com/help/pdf_doc/matlab/apiext.pdf).
+The package provides an adapter to the [MATLAB MAT-file API][1].
 
 ## Installation
 
@@ -12,8 +11,7 @@ $ go get github.com/ready-steady/format/mat
 ```
 
 The above command will fail. However, it will properly clone this repository
-into [`$GOPATH`](https://golang.org/doc/code.html#GOPATH). Go to that
-directory:
+into [`$GOPATH`][2]. Go to that directory:
 
 ```bash
 $ cd $GOPATH/src/github.com/ready-steady/format/mat
@@ -24,7 +22,7 @@ MATLAB installation. It is preferable to do so in `~/.bash_profile` or alike.
 For example:
 
 ```bash
-export MATLAB_ROOT=/Applications/MATLAB_R2014a.app
+export MATLAB_ROOT=/Applications/MATLAB_R2014b.app
 export MATLAB_ARCH=maci64
 ```
 
@@ -42,3 +40,6 @@ environment variable should be set depending on your system. For example, in
 ```bash
 export DYLD_LIBRARY_PATH="$MATLAB_ROOT/bin/$MATLAB_ARCH:$DYLD_LIBRARY_PATH"
 ```
+
+[1]: http://www.mathworks.com/help/pdf_doc/matlab/apiext.pdf
+[2]: https://golang.org/doc/code.html#GOPATH
