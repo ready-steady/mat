@@ -2,6 +2,8 @@
 
 The package provides an adapter to the [MATLAB MAT-file API][1].
 
+## [Documentation][doc]
+
 ## Installation
 
 Run:
@@ -43,3 +45,5 @@ export DYLD_LIBRARY_PATH="$MATLAB_ROOT/bin/$MATLAB_ARCH:$DYLD_LIBRARY_PATH"
 
 [1]: http://www.mathworks.com/help/pdf_doc/matlab/apiext.pdf
 [2]: https://golang.org/doc/code.html#GOPATH
+
+[doc]: http://godoc.org/github.com/ready-steady/format/mat
