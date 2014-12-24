@@ -8,4 +8,4 @@ allocation research. Refer to [TGFF][1] for further details.
 
 [1]: http://ziyang.eecs.umich.edu/~dickrp/tgff
 
-[doc]: http://godoc.org/github.com/ready-steady/format/mat
+[doc]: http://godoc.org/github.com/ready-steady/format/tgff
