@@ -6,7 +6,7 @@ The package provides an adapter to the [MATLAB MAT-file API][1].
 
 ## Installation
 
-Run:
+Fetch the package:
 
 ```bash
 go get -d github.com/ready-steady/format/mat
@@ -26,7 +26,7 @@ export MATLAB_ROOT=/Applications/MATLAB_R2014b.app
 export MATLAB_ARCH=maci64
 ```
 
-Run:
+Finally, install the package:
 
 ```bash
 make install
