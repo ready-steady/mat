@@ -20,7 +20,7 @@ type File struct {
 
 // Open opens a MAT file for reading and writing.
 //
-// http://www.mathworks.se/help/matlab/apiref/matopen.html
+// http://www.mathworks.com/help/matlab/apiref/matopen.html
 func Open(path string, mode string) (*File, error) {
 	cpath := C.CString(path)
 	defer C.free(unsafe.Pointer(cpath))
