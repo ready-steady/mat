@@ -22,7 +22,7 @@ Set the `MATLAB_ROOT` and `MATLAB_ARCH` environment variables according to your
 MATLAB installation. For example,
 
 ```bash
-export MATLAB_ROOT=/Applications/MATLAB_R2014b.app
+export MATLAB_ROOT=/Applications/MATLAB_R2015a.app
 export MATLAB_ARCH=maci64
 ```
 
