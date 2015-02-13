@@ -26,10 +26,10 @@ func (f *File) Get(name string, object interface{}) error {
 	}
 	defer C.mxDestroyArray(array)
 
-	return f.readArray(array, value)
+	return f.readObject(array, value)
 }
 
-func (f *File) readArray(array *C.mxArray, value reflect.Value) error {
+func (f *File) readObject(array *C.mxArray, value reflect.Value) error {
 	ivalue := reflect.Indirect(value)
 	switch ivalue.Kind() {
 	case reflect.Struct:
@@ -88,7 +88,7 @@ func (f *File) readStruct(array *C.mxArray, ivalue reflect.Value) error {
 			return errors.New("data structure mismatch")
 		}
 
-		if err := f.readArray(farray, ivalue.Field(i)); err != nil {
+		if err := f.readObject(farray, ivalue.Field(i)); err != nil {
 			return err
 		}
 	}

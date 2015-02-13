@@ -12,7 +12,7 @@ import (
 
 // Put writes an object into the file.
 func (f *File) Put(name string, object interface{}) error {
-	array, err := f.writeArray(reflect.ValueOf(object))
+	array, err := f.writeObject(reflect.ValueOf(object))
 	if err != nil {
 		return err
 	}
@@ -21,14 +21,28 @@ func (f *File) Put(name string, object interface{}) error {
 	return f.putVariable(name, array)
 }
 
-// Put writes a matrix into the file.
-func (f *File) PutMatrix(name string, object interface{}, rows, cols uint) error {
+// PutArray writes a multidimensional array into the file.
+func (f *File) PutArray(name string, object interface{}, dimensions ...uint) error {
 	value := reflect.ValueOf(object)
-	if uint(value.Len()) != rows*cols {
+	length := uint(value.Len())
+
+	switch len(dimensions) {
+	case 0:
+		dimensions = append(dimensions, length, 1)
+	case 1:
+		dimensions = append(dimensions, 1)
+	}
+
+	size := dimensions[0]
+	for i := 1; i < len(dimensions); i++ {
+		size *= dimensions[i]
+	}
+
+	if length != size {
 		return errors.New("dimension mismatch")
 	}
 
-	array, err := f.writeMatrix(value, rows, cols)
+	array, err := f.writeArray(value, dimensions...)
 	if err != nil {
 		return err
 	}
@@ -37,18 +51,23 @@ func (f *File) PutMatrix(name string, object interface{}, rows, cols uint) error
 	return f.putVariable(name, array)
 }
 
-func (f *File) writeArray(value reflect.Value) (*C.mxArray, error) {
+// PutMatrix writes a matrix into the file.
+func (f *File) PutMatrix(name string, object interface{}, rows, cols uint) error {
+	return f.PutArray(name, object, rows, cols)
+}
+
+func (f *File) writeObject(value reflect.Value) (*C.mxArray, error) {
 	switch value.Kind() {
 	case reflect.Slice:
-		return f.writeMatrix(value, 1, uint(value.Len()))
+		return f.writeArray(value, uint(value.Len()), 1)
 	case reflect.Struct:
 		return f.writeStruct(value)
 	default:
-		return f.writeMatrix(value, 1, 1)
+		return f.writeArray(value, 1, 1)
 	}
 }
 
-func (f *File) writeMatrix(value reflect.Value, rows, cols uint) (*C.mxArray, error) {
+func (f *File) writeArray(value reflect.Value, dimensions ...uint) (*C.mxArray, error) {
 	var kind reflect.Kind
 
 	if value.Kind() == reflect.Slice {
@@ -62,15 +81,17 @@ func (f *File) writeMatrix(value reflect.Value, rows, cols uint) (*C.mxArray, er
 		return nil, errors.New("unsupported data type")
 	}
 
-	array := C.mxCreateNumericMatrix(C.size_t(rows), C.size_t(cols), classid, C.mxREAL)
+	// NOTE: Do we need a proper conversion from uint to C.size_t?
+	array := C.mxCreateNumericArray(C.size_t(len(dimensions)),
+		(*C.size_t)(unsafe.Pointer(&dimensions[0])), classid, C.mxREAL)
 	if array == nil {
-		return nil, errors.New("cannot create a matrix")
+		return nil, errors.New("cannot create an array")
 	}
 
 	parray := unsafe.Pointer(C.mxGetPr(array))
 	if parray == nil {
 		C.mxDestroyArray(array)
-		return nil, errors.New("cannot create a matrix")
+		return nil, errors.New("cannot create an array")
 	}
 
 	size, ok := classSizeMapping[classid]
@@ -114,7 +135,7 @@ func (f *File) writeStruct(value reflect.Value) (*C.mxArray, error) {
 		defer C.free(unsafe.Pointer(name))
 		names = append(names, name)
 
-		array, err := f.writeArray(value.Field(i))
+		array, err := f.writeObject(value.Field(i))
 		if err != nil {
 			cleanup()
 			return nil, err
