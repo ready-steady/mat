@@ -29,7 +29,7 @@ func TestPutMatrix(t *testing.T) {
 	file, _ := Open(path, "w7.3")
 	defer file.Close()
 
-	name, rows, cols := "a", uint32(2), uint32(3)
+	name, rows, cols := "a", uint(2), uint(3)
 	data := []float64{1, 2, 3, 4, 5, 6}
 
 	assert.Success(file.PutMatrix(name, data, rows, cols), t)

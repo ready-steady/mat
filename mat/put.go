@@ -22,9 +22,9 @@ func (f *File) Put(name string, object interface{}) error {
 }
 
 // Put writes a matrix into the file.
-func (f *File) PutMatrix(name string, object interface{}, rows, cols uint32) error {
+func (f *File) PutMatrix(name string, object interface{}, rows, cols uint) error {
 	value := reflect.ValueOf(object)
-	if uint32(value.Len()) != rows*cols {
+	if uint(value.Len()) != rows*cols {
 		return errors.New("dimension mismatch")
 	}
 
@@ -40,7 +40,7 @@ func (f *File) PutMatrix(name string, object interface{}, rows, cols uint32) err
 func (f *File) writeArray(value reflect.Value) (*C.mxArray, error) {
 	switch value.Kind() {
 	case reflect.Slice:
-		return f.writeMatrix(value, 1, uint32(value.Len()))
+		return f.writeMatrix(value, 1, uint(value.Len()))
 	case reflect.Struct:
 		return f.writeStruct(value)
 	default:
@@ -48,7 +48,7 @@ func (f *File) writeArray(value reflect.Value) (*C.mxArray, error) {
 	}
 }
 
-func (f *File) writeMatrix(value reflect.Value, rows, cols uint32) (*C.mxArray, error) {
+func (f *File) writeMatrix(value reflect.Value, rows, cols uint) (*C.mxArray, error) {
 	var kind reflect.Kind
 
 	if value.Kind() == reflect.Slice {
