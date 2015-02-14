@@ -163,7 +163,23 @@ func (f *File) writeStruct(value reflect.Value) (*C.mxArray, error) {
 }
 
 func writeScalar(v reflect.Value, p unsafe.Pointer) error {
+	const (
+		Is64bit = uint64(^uint(0)) == ^uint64(0)
+	)
+
 	switch v.Kind() {
+	case reflect.Int:
+		if Is64bit {
+			*((*int64)(p)) = int64(v.Int())
+		} else {
+			*((*int32)(p)) = int32(v.Int())
+		}
+	case reflect.Uint:
+		if Is64bit {
+			*((*uint64)(p)) = uint64(v.Uint())
+		} else {
+			*((*uint32)(p)) = uint32(v.Uint())
+		}
 	case reflect.Int8:
 		*((*int8)(p)) = int8(v.Int())
 	case reflect.Uint8:
