@@ -13,6 +13,10 @@ import (
 	"unsafe"
 )
 
+const (
+	is64bit = uint64(^uint(0)) == ^uint64(0)
+)
+
 // File represents a MAT file.
 type File struct {
 	mat *C.MATFile

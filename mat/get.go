@@ -35,11 +35,11 @@ func (f *File) readObject(array *C.mxArray, value reflect.Value) error {
 	case reflect.Struct:
 		return f.readStruct(array, ivalue)
 	default:
-		return f.readMatrix(array, ivalue)
+		return f.readArray(array, ivalue)
 	}
 }
 
-func (f *File) readMatrix(array *C.mxArray, ivalue reflect.Value) error {
+func (f *File) readArray(array *C.mxArray, ivalue reflect.Value) error {
 	parray := unsafe.Pointer(C.mxGetPr(array))
 	if parray == nil {
 		return errors.New("cannot read the variable")
@@ -98,6 +98,10 @@ func (f *File) readStruct(array *C.mxArray, ivalue reflect.Value) error {
 
 func readScalar(iv reflect.Value, p unsafe.Pointer) error {
 	switch iv.Kind() {
+	case reflect.Int:
+		*(*int)(unsafe.Pointer(iv.UnsafeAddr())) = *(*int)(p)
+	case reflect.Uint:
+		*(*uint)(unsafe.Pointer(iv.UnsafeAddr())) = *(*uint)(p)
 	case reflect.Int8:
 		*(*int8)(unsafe.Pointer(iv.UnsafeAddr())) = *(*int8)(p)
 	case reflect.Uint8:

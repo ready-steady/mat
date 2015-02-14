@@ -7,6 +7,16 @@ import (
 	"reflect"
 )
 
+func init() {
+	if is64bit {
+		kindClassMapping[reflect.Int] = C.mxINT64_CLASS
+		kindClassMapping[reflect.Uint] = C.mxUINT64_CLASS
+	} else {
+		kindClassMapping[reflect.Int] = C.mxINT32_CLASS
+		kindClassMapping[reflect.Uint] = C.mxUINT32_CLASS
+	}
+}
+
 var classSizeMapping = map[C.mxClassID]C.size_t{
 	C.mxINT8_CLASS:   1,
 	C.mxUINT8_CLASS:  1,
