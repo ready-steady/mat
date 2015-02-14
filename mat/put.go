@@ -39,7 +39,7 @@ func (f *File) PutArray(name string, object interface{}, dimensions ...uint) err
 	}
 
 	if length != size {
-		return errors.New("dimension mismatch")
+		return errors.New("the dimensions do not match")
 	}
 
 	array, err := f.writeArray(value, dimensions...)
@@ -78,7 +78,7 @@ func (f *File) writeArray(value reflect.Value, dimensions ...uint) (*C.mxArray, 
 
 	classid, ok := kindClassMapping[kind]
 	if !ok {
-		return nil, errors.New("unsupported data type")
+		return nil, errors.New("encountered an unsupported data type")
 	}
 
 	// NOTE: Do we need a proper conversion from uint to C.size_t?
@@ -96,7 +96,7 @@ func (f *File) writeArray(value reflect.Value, dimensions ...uint) (*C.mxArray, 
 
 	size, ok := classSizeMapping[classid]
 	if !ok {
-		return nil, errors.New("unsupported data type")
+		return nil, errors.New("encountered an unsupported data type")
 	}
 
 	if value.Kind() == reflect.Slice {
@@ -152,7 +152,7 @@ func (f *File) writeStruct(value reflect.Value) (*C.mxArray, error) {
 	array := C.mxCreateStructMatrix(1, 1, C.int(count), pnames)
 	if array == nil {
 		cleanup()
-		return nil, errors.New("cannot create a struct")
+		return nil, errors.New("cannot create a structure")
 	}
 
 	for i := 0; i < count; i++ {
@@ -197,7 +197,7 @@ func writeScalar(v reflect.Value, p unsafe.Pointer) error {
 	case reflect.Float64:
 		*((*float64)(p)) = float64(v.Float())
 	default:
-		return errors.New("unsupported data type")
+		return errors.New("encountered an unsupported data type")
 	}
 
 	return nil

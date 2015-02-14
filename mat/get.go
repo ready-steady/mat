@@ -48,14 +48,14 @@ func (f *File) readArray(array *C.mxArray, ivalue reflect.Value) error {
 	count := C.mxGetM(array) * C.mxGetN(array)
 	size, ok := classSizeMapping[C.mxGetClassID(array)]
 	if !ok {
-		return errors.New("unsupported data type")
+		return errors.New("encountered an unsupported data type")
 	}
 
 	if ivalue.Kind() == reflect.Slice {
 		return readSlice(ivalue, parray, count, size)
 	} else {
 		if count != 1 {
-			return errors.New("data size mismatch")
+			return errors.New("expected to find a scalar")
 		}
 		return readScalar(ivalue, parray)
 	}
@@ -63,18 +63,18 @@ func (f *File) readArray(array *C.mxArray, ivalue reflect.Value) error {
 
 func (f *File) readStruct(array *C.mxArray, ivalue reflect.Value) error {
 	if C.mxSTRUCT_CLASS != C.mxGetClassID(array) {
-		return errors.New("data type mismatch")
+		return errors.New("expected to find a structure")
 	}
 
 	if C.mxGetM(array)*C.mxGetN(array) != 1 {
-		return errors.New("data size mismatch")
+		return errors.New("expected to find one structure")
 	}
 
 	typo := ivalue.Type()
 	count := typo.NumField()
 
 	if count != int(C.mxGetNumberOfFields(array)) {
-		return errors.New("data structure mismatch")
+		return errors.New("expected to find all fields of the structure")
 	}
 
 	for i := 0; i < count; i++ {
@@ -85,7 +85,7 @@ func (f *File) readStruct(array *C.mxArray, ivalue reflect.Value) error {
 
 		farray := C.mxGetField(array, 0, name)
 		if farray == nil {
-			return errors.New("data structure mismatch")
+			return errors.New("cannot read a field of the structure")
 		}
 
 		if err := f.readObject(farray, ivalue.Field(i)); err != nil {
@@ -123,7 +123,7 @@ func readScalar(iv reflect.Value, p unsafe.Pointer) error {
 	case reflect.Float64:
 		*(*float64)(unsafe.Pointer(iv.UnsafeAddr())) = *(*float64)(p)
 	default:
-		return errors.New("unsupported data type")
+		return errors.New("encountered an unsupported data type")
 	}
 
 	return nil
