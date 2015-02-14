@@ -7,7 +7,7 @@ const (
 
 // Result is a representation of a TGFF file.
 type Result struct {
-	Period uint16 // Hyperperiod
+	Period uint // Hyperperiod
 
 	Graphs []Graph
 	Tables []Table
@@ -16,8 +16,8 @@ type Result struct {
 // Graph represents a graph in a TGFF file.
 type Graph struct {
 	Name      string
-	ID        uint16
-	Period    uint16
+	ID        uint
+	Period    uint
 	Tasks     []Task
 	Arcs      []Arc
 	Deadlines []Deadline // Hard deadlines
@@ -26,7 +26,7 @@ type Graph struct {
 // Task is a TASK entry of a graph.
 type Task struct {
 	Name string
-	Type uint16
+	Type uint
 }
 
 // Arc is a ARC entry of a graph.
@@ -34,20 +34,20 @@ type Arc struct {
 	Name string
 	From string
 	To   string
-	Type uint16
+	Type uint
 }
 
 // Deadline is a HARD_DEADLINE entry of a graph.
 type Deadline struct {
 	Name string
 	On   string
-	At   uint16
+	At   uint
 }
 
 // Table represents a table in a TGFF file.
 type Table struct {
 	Name       string
-	ID         uint16
+	ID         uint
 	Attributes map[string]float64
 	Columns    []Column
 }
@@ -58,7 +58,7 @@ type Column struct {
 	Data []float64
 }
 
-func (r *Result) addGraph(name string, id uint16) *Graph {
+func (r *Result) addGraph(name string, id uint) *Graph {
 	r.Graphs = append(r.Graphs, Graph{
 		Name:  name,
 		ID:    id,
@@ -69,7 +69,7 @@ func (r *Result) addGraph(name string, id uint16) *Graph {
 	return &r.Graphs[len(r.Graphs)-1]
 }
 
-func (r *Result) addTable(name string, id uint16) *Table {
+func (r *Result) addTable(name string, id uint) *Table {
 	r.Tables = append(r.Tables, Table{
 		Name: name,
 		ID:   id,

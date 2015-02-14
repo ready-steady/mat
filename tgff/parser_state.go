@@ -42,7 +42,7 @@ func parControlState(p *parser) parState {
 	}
 
 	if name.value == "HYPERPERIOD" {
-		p.result.Period = number.Uint16()
+		p.result.Period = number.Uint()
 
 		return parControlState
 	}
@@ -54,9 +54,9 @@ func parControlState(p *parser) parState {
 	if token, err := p.peekOneOf(identToken, titleToken); err != nil {
 		return parErrorState(err)
 	} else if token.kind == identToken {
-		return parGraphState(p.result.addGraph(name.value, number.Uint16()))
+		return parGraphState(p.result.addGraph(name.value, number.Uint()))
 	} else {
-		return parTableState(p.result.addTable(name.value, number.Uint16()))
+		return parTableState(p.result.addTable(name.value, number.Uint()))
 	}
 }
 
@@ -78,7 +78,7 @@ func parGraphState(graph *Graph) parState {
 			if token, err := p.receiveOneOf(numberToken); err != nil {
 				return parErrorState(err)
 			} else {
-				graph.Period = token.Uint16()
+				graph.Period = token.Uint()
 				return parGraphState(graph)
 			}
 		case "ARC":
@@ -115,7 +115,7 @@ func parTaskState(graph *Graph) parState {
 		if token, err := p.receiveOne(numberToken); err != nil {
 			return parErrorState(err)
 		} else {
-			task.Type = token.Uint16()
+			task.Type = token.Uint()
 		}
 
 		return parGraphState(graph)
@@ -164,7 +164,7 @@ func parArcState(graph *Graph) parState {
 		if token, err := p.receiveOne(numberToken); err != nil {
 			return parErrorState(err)
 		} else {
-			arc.Type = token.Uint16()
+			arc.Type = token.Uint()
 		}
 
 		return parGraphState(graph)
@@ -204,7 +204,7 @@ func parDeadlineState(graph *Graph) parState {
 		if token, err := p.receiveOne(numberToken); err != nil {
 			return parErrorState(err)
 		} else {
-			deadline.At = token.Uint16()
+			deadline.At = token.Uint()
 		}
 
 		return parGraphState(graph)
