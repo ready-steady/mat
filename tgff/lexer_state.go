@@ -58,7 +58,7 @@ func lexUncertainState(l *lexer) lexState {
 	case isNamely(c):
 		return lexNameState
 	default:
-		return lexErrorState(errors.New("unknown token"))
+		return lexErrorState(errors.New("encountered an unknown token"))
 	}
 }
 
