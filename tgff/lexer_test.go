@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ready-steady/support/assert"
+	"github.com/ready-steady/assert"
 )
 
 func assertLexerAt(lexer *lexer, char byte, t *testing.T) {
