@@ -11,7 +11,7 @@ import (
 )
 
 func TestPut(t *testing.T) {
-	path := fixture.MakeTemporaryFile()
+	path := fixture.MakeFile()
 	defer os.Remove(path)
 
 	file, _ := Open(path, "w7.3")
@@ -23,7 +23,7 @@ func TestPut(t *testing.T) {
 }
 
 func TestPutMatrix(t *testing.T) {
-	path := fixture.MakeTemporaryFile()
+	path := fixture.MakeFile()
 	defer os.Remove(path)
 
 	file, _ := Open(path, "w7.3")
