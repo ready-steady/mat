@@ -17,12 +17,12 @@ const (
 	is64bit = uint64(^uint(0)) == ^uint64(0)
 )
 
-// File represents a MAT file.
+// File represents a file.
 type File struct {
 	mat *C.MATFile
 }
 
-// Open opens a MAT file for reading and writing.
+// Open opens a file for reading and writing.
 //
 // http://www.mathworks.com/help/matlab/apiref/matopen.html
 func Open(path string, mode string) (*File, error) {
@@ -40,7 +40,7 @@ func Open(path string, mode string) (*File, error) {
 	return file, nil
 }
 
-// Close closes the MAT file.
+// Close closes the file.
 func (f *File) Close() {
 	C.matClose(f.mat)
 	f.mat = nil
