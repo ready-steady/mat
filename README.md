@@ -1,4 +1,4 @@
-# MATLAB MAT [![Build Status][travis-svg]][travis-url]
+# MATLAB MAT
 
 The package provides an adapter to the [MATLAB MAT-file API][1].
 
@@ -49,5 +49,3 @@ export DYLD_LIBRARY_PATH="$MATLAB_ROOT/bin/$MATLAB_ARCH:$DYLD_LIBRARY_PATH"
 [1]: http://www.mathworks.com/help/pdf_doc/matlab/apiext.pdf
 
 [doc]: http://godoc.org/github.com/ready-steady/mat
-[travis-svg]: https://travis-ci.org/ready-steady/mat.svg?branch=master
-[travis-url]: https://travis-ci.org/ready-steady/mat
