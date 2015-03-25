@@ -1,4 +1,4 @@
-// Package mat provides an adapter to the MATLAB MAT-file API.
+// Package mat provides a reader and writer of MATLAB MAT-files.
 //
 // http://www.mathworks.com/help/pdf_doc/matlab/apiext.pdf
 package mat

@@ -1,6 +1,6 @@
 # MATLAB MAT
 
-The package provides an adapter to the [MATLAB MAT-file API][1].
+The package provides a reader and writer of [MATLAB MAT-files][1].
 
 ## [Documentation][doc]
 
